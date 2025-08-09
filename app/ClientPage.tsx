@@ -13,6 +13,7 @@ import {
   Phone,
   AudioLines,
   Sparkles,
+  Rss,
 } from "lucide-react"
 import type React from "react"
 
@@ -23,7 +24,7 @@ function SocialIcon({
   type,
   href,
   label,
-}: { type: "github" | "linkedin" | "email" | "website" | "soundcloud" | "magic"; href: string; label?: string }) {
+}: { type: "github" | "linkedin" | "email" | "website" | "soundcloud" | "magic" | "substack"; href: string; label?: string }) {
   const common = "size-5"
   function getSocialIcon(type: string, common: string) {
     switch (type) {
@@ -37,6 +38,8 @@ function SocialIcon({
         return <AudioLines className={common} aria-hidden="true" />
       case "magic":
         return <Sparkles className={`${common} text-purple-500 animate-pulse`} aria-hidden="true" />
+      case "substack":
+        return <Rss className={`${common} text-orange-500`} aria-hidden="true" />
       default:
         return <LinkIcon className={common} aria-hidden="true" />
     }
@@ -145,8 +148,9 @@ function Hero() {
             <div className="flex flex-wrap gap-2 pt-2">
               {resume.links?.github ? <SocialIcon type="github" href={resume.links.github} /> : null}
               {resume.links?.linkedin ? <SocialIcon type="linkedin" href={resume.links.linkedin} /> : null}
-              {resume.links?.email ? <SocialIcon type="email" href={`mailto:${resume.links.email}`} /> : null}
+              {resume.links?.substack ? <SocialIcon type="substack" href={resume.links.substack} label="Substack" /> : null}
               {resume.links?.soundcloud ? <SocialIcon type="soundcloud" href={resume.links.soundcloud} /> : null}
+              {resume.links?.email ? <SocialIcon type="email" href={`mailto:${resume.links.email}`} /> : null}
               {resume.links?.magic ? <SocialIcon type="magic" href={resume.links.magic} /> : null}
             </div>
           </div>

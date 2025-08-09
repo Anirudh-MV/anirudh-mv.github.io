@@ -24,6 +24,7 @@ export const resume = {
     website: "https://anirudhmv.in",
     soundcloud: "https://soundcloud.com/anirudh-mv",
     magic: "https://www.youtube.com/watch?v=dQw4w9WgXcQ",
+    substack: "https://anirudhmv21.substack.com",
   },
   nav: [
     { href: "#about", label: "About" },

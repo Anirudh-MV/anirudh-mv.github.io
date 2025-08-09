@@ -18,6 +18,7 @@ export const resume = {
   },
   links: {
     github: "https://github.com/Anirudh-MV",
+    linkedin: "https://www.linkedin.com/in/anirudh-mv-3ba53879/",
     email: "mailto:contact@anirudhmv.in",
     phone: "+91 xxxxxxxxxxx",
     soundcloud: "https://soundcloud.com/anirudh-mv",

@@ -21,6 +21,7 @@ export const resume = {
     linkedin: "https://www.linkedin.com/in/anirudh-mv-3ba53879/",
     email: "mailto:contact@anirudhmv.in",
     phone: "+91 xxxxxxxxxxx",
+    website: "https://anirudhmv.in",
     soundcloud: "https://soundcloud.com/anirudh-mv",
     magic: "https://www.youtube.com/watch?v=dQw4w9WgXcQ",
   },

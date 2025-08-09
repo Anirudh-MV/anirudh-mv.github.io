@@ -25,20 +25,23 @@ function SocialIcon({
   label,
 }: { type: "github" | "linkedin" | "email" | "website" | "soundcloud" | "magic"; href: string; label?: string }) {
   const common = "size-5"
-  const icon =
-    type === "github" ? (
-      <Github className={common} aria-hidden="true" />
-    ) : type === "linkedin" ? (
-      <Linkedin className={common} aria-hidden="true" />
-    ) : type === "email" ? (
-      <Mail className={common} aria-hidden="true" />
-    ) : type === "soundcloud" ? (
-      <AudioLines className={common} aria-hidden="true" />
-    ) : type === "magic" ? (
-      <Sparkles className={`${common} text-purple-500 animate-pulse`} aria-hidden="true" />
-    ) : (
-      <LinkIcon className={common} aria-hidden="true" />
-    )
+  function getSocialIcon(type: string, common: string) {
+    switch (type) {
+      case "github":
+        return <Github className={common} aria-hidden="true" />
+      case "linkedin":
+        return <Linkedin className={common} aria-hidden="true" />
+      case "email":
+        return <Mail className={common} aria-hidden="true" />
+      case "soundcloud":
+        return <AudioLines className={common} aria-hidden="true" />
+      case "magic":
+        return <Sparkles className={`${common} text-purple-500 animate-pulse`} aria-hidden="true" />
+      default:
+        return <LinkIcon className={common} aria-hidden="true" />
+    }
+  }
+  const icon = getSocialIcon(type, common)
   const finalLabel =
     label ??
     (type === "github"
@@ -143,7 +146,6 @@ function Hero() {
               {resume.links?.github ? <SocialIcon type="github" href={resume.links.github} /> : null}
               {resume.links?.linkedin ? <SocialIcon type="linkedin" href={resume.links.linkedin} /> : null}
               {resume.links?.email ? <SocialIcon type="email" href={`mailto:${resume.links.email}`} /> : null}
-              {resume.links?.website ? <SocialIcon type="website" href={resume.links.website} label="Website" /> : null}
               {resume.links?.soundcloud ? <SocialIcon type="soundcloud" href={resume.links.soundcloud} /> : null}
               {resume.links?.magic ? <SocialIcon type="magic" href={resume.links.magic} /> : null}
             </div>

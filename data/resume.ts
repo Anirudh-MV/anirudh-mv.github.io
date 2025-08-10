@@ -91,9 +91,9 @@ export const resume = {
   // Projects
   projects: [
     {
-      name: "Same as Them Website",
+      name: "Band Portfolio - Same as Them",
       role: "Maintainer",
-      description: "Website for the band Same as Them that I was a part of.",
+      description: "Band portfolio and web presskit for the band Same as Them, a Bangalore-based Nepali alt-rock band, that I was a part of.",
       link: "https://sameasthem.in",
       stack: ["Astro", "Node"],
     },

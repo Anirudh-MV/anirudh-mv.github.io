@@ -83,7 +83,7 @@ function SocialButton({
 }
 
 function Badge({ children }: { children: React.ReactNode }) {
-  return <span className="rounded-full border px-2.5 py-1 text-xs">{children}</span>
+  return <span className="rounded-full border px-2.5 py-1 text-xs cursor-default">{children}</span>
 }
 
 function Section({ id, title, children }: { id: string; title: string; children: React.ReactNode }) {
@@ -314,8 +314,8 @@ function Footer() {
           &copy; {new Date().getFullYear()} {resume.name}. All rights reserved.
         </div>
         <div className="flex items-center gap-2">
-          <Briefcase className="size-3.5" aria-hidden="true" />
-          <span>Built with v0</span>
+          <Sparkles className="size-3.5" aria-hidden="true" />
+          <span>Built with help from v0 and Copilot</span>
         </div>
       </div>
     </footer>

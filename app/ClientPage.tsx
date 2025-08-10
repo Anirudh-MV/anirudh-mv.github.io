@@ -20,7 +20,7 @@ import type React from "react"
 import Link from "next/link"
 import { resume } from "@/data/resume"
 
-function SocialIcon({
+function SocialButton({
   type,
   href,
   label,
@@ -37,33 +37,43 @@ function SocialIcon({
       case "soundcloud":
         return <AudioLines className={common} aria-hidden="true" />
       case "magic":
-        return <Sparkles className={`${common} text-purple-500 animate-pulse`} aria-hidden="true" />
+        return <Sparkles 
+          className={`${common} text-purple-500 animate-pulse`}
+          style={{
+            animation: "pulse 0.2s linear infinite", // Adjust duration (e.g., 0.5s for faster pulse)
+          }}
+          aria-hidden="true" 
+        />
       case "substack":
         return <Rss className={`${common} text-orange-500`} aria-hidden="true" />
       default:
         return <LinkIcon className={common} aria-hidden="true" />
     }
   }
+  function getFinalLabel(type: string): string {
+    switch (type) {
+      case "github":
+        return "GitHub";
+      case "linkedin":
+        return "LinkedIn";
+      case "email":
+        return "Email";
+      case "soundcloud":
+        return "SoundCloud";
+      case "magic":
+        return "Magic Button";
+      default:
+        return "Website";
+    }
+  }
   const icon = getSocialIcon(type, common)
-  const finalLabel =
-    label ??
-    (type === "github"
-      ? "GitHub"
-      : type === "linkedin"
-        ? "LinkedIn"
-        : type === "email"
-          ? "Email"
-          : type === "soundcloud"
-            ? "SoundCloud"
-            : type === "magic"
-              ? "Magic Button"
-              : "Website")
+  const finalLabel = label ?? getFinalLabel(type)
   return (
     <Link
       href={href}
       aria-label={finalLabel}
       className={`inline-flex items-center gap-2 rounded-md border px-3 py-1.5 text-sm hover:bg-accent transition-colors ${
-        type === "magic" ? "hover:border-purple-400 hover:shadow-md hover:shadow-purple-200/50" : ""
+        type === "magic" ? "hover:border-purple-400 hover:shadow-md hover:shadow-purple-100/90" : ""
       }`}
     >
       {icon}
@@ -146,12 +156,12 @@ function Hero() {
             </div>
             {resume.summary ? <p className="text-sm sm:text-base">{resume.summary}</p> : null}
             <div className="flex flex-wrap gap-2 pt-2">
-              {resume.links?.github ? <SocialIcon type="github" href={resume.links.github} /> : null}
-              {resume.links?.linkedin ? <SocialIcon type="linkedin" href={resume.links.linkedin} /> : null}
-              {resume.links?.substack ? <SocialIcon type="substack" href={resume.links.substack} label="Substack" /> : null}
-              {resume.links?.soundcloud ? <SocialIcon type="soundcloud" href={resume.links.soundcloud} /> : null}
-              {resume.links?.email ? <SocialIcon type="email" href={`mailto:${resume.links.email}`} /> : null}
-              {resume.links?.magic ? <SocialIcon type="magic" href={resume.links.magic} /> : null}
+              {resume.links?.github ? <SocialButton type="github" href={resume.links.github} /> : null}
+              {resume.links?.linkedin ? <SocialButton type="linkedin" href={resume.links.linkedin} /> : null}
+              {resume.links?.substack ? <SocialButton type="substack" href={resume.links.substack} label="Substack" /> : null}
+              {resume.links?.soundcloud ? <SocialButton type="soundcloud" href={resume.links.soundcloud} /> : null}
+              {resume.links?.email ? <SocialButton type="email" href={`mailto:${resume.links.email}`} /> : null}
+              {resume.links?.magic ? <SocialButton type="magic" href={resume.links.magic} /> : null}
             </div>
           </div>
         </div>

@@ -124,7 +124,7 @@ function Hero() {
             <img
               src={resume.profile?.imageSrc ?? "/images/profile.png"}
               alt={resume.profile?.imageAlt ?? `${resume.name} profile`}
-              className="h-28 w-28 rounded-full object-cover ring-2 ring-border"
+              className="h-28 w-28 rounded-full object-cover"
             />
           </div>
           <div className="space-y-3">
@@ -289,14 +289,6 @@ function Contact() {
             className="inline-flex items-center gap-2 rounded-md border px-3 py-1.5 text-sm hover:bg-accent transition-colors"
           >
             <LinkIcon className="size-4" aria-hidden="true" /> {resume.links.website.replace(/^https?:\/\//, "")}
-          </Link>
-        ) : null}
-        {resume.links?.phone ? (
-          <Link
-            href={`tel:${resume.links.phone.replace(/\s+/g, "")}`}
-            className="inline-flex items-center gap-2 rounded-md border px-3 py-1.5 text-sm hover:bg-accent transition-colors"
-          >
-            <Phone className="size-4" aria-hidden="true" /> {resume.links.phone}
           </Link>
         ) : null}
       </div>

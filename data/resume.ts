@@ -44,7 +44,7 @@ export const resume = {
       description: "",
       highlights: [
       ],
-      tech: ["Node.js", "TypeScript", "Cloud"],
+      tech: ["Node.js", "Python", "Flask", "GCP", "Kafka"],
     },
     {
       company: "Ather Energy Ltd.",

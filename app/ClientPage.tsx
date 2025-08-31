@@ -10,10 +10,14 @@ import {
   Calendar,
   ExternalLink,
   Mail,
-  LinkIcon
+  Copy,
+  Check
 } from "lucide-react"
+import { useToast } from "@/hooks/use-toast"
 import { resume } from "@/data/resume"
 import { SocialItem } from "./typedef"
+import { Toaster } from "@/components/ui/toaster"
+import { Button } from "@/components/ui/button"
 
 function SocialButton({
   socialItem
@@ -135,6 +139,7 @@ function Hero() {
               {Object.entries(resume.socials || {}).map(([key, value]) => {
                 return (
                   <SocialButton
+                    key={key}
                     socialItem={value}
                   />
                 )
@@ -258,25 +263,53 @@ function Education() {
 }
 
 function Contact() {
+  const { toast } = useToast()
+  const [copied, setCopied] = React.useState(false)
+
+  const copyToClipboard = (text: string) => {
+    navigator.clipboard.writeText(text).then(() => {
+      setCopied(true)
+      toast({
+        title: "Email copied",
+        description: "Email address has been copied to clipboard",
+      })
+      // Reset the copied state after 2 seconds
+      setTimeout(() => setCopied(false), 2000)
+    }).catch(err => {
+      console.error('Failed to copy: ', err)
+      toast({
+        title: "Failed to copy",
+        description: "Could not copy email to clipboard",
+        variant: "destructive",
+      })
+    })
+  }
+
   if (!resume.socials?.email.href && !resume.socials?.website.href) return null
   return (
     <Section id="contact" title="Contact">
       <div className="flex flex-wrap items-center gap-2">
         {resume.socials?.email.href ? (
-          <Link
-            href={`mailto:${resume.socials.email.href}`}
-            className="inline-flex items-center gap-2 rounded-md border px-3 py-1.5 text-sm hover:bg-accent transition-colors"
-          >
-            <Mail className="size-4" aria-hidden="true" /> {resume.socials.email.label}
-          </Link>
-        ) : null}
-        {resume.socials?.website.href ? (
-          <Link
-            href={resume.socials.website.href}
-            className="inline-flex items-center gap-2 rounded-md border px-3 py-1.5 text-sm hover:bg-accent transition-colors"
-          >
-            <LinkIcon className="size-4" aria-hidden="true" /> {resume.socials.website.label.replace(/^https?:\/\//, "")}
-          </Link>
+          <div className="flex items-center group relative">
+            <div className="absolute inset-0 rounded-md border-2 border-green-500 opacity-0 group-hover:opacity-100 transition-opacity"></div>
+            <Link
+              href={`mailto:${resume.socials.email.href}`}
+              className="inline-flex items-center gap-2 rounded-l-md border border-r-0 px-3 py-1.5 text-sm hover:bg-accent transition-colors relative z-10"
+            >
+              <Mail className="size-4" aria-hidden="true" /> {resume.socials.email.label}
+            </Link>
+            
+            <Button
+              onClick={() => copyToClipboard(resume.socials.email.href)}
+              className="inline-flex items-center gap-2 rounded-l-md border border-r-0 px-3 py-1.5 text-sm hover:bg-accent transition-colors relative z-10"
+              aria-label="Copy email to clipboard"
+              variant="outline"
+              size="sm"
+              type="button"
+            >
+              {copied ? <Check className="size-4 text-green-500" /> : <Copy className="size-4" />}
+            </Button>
+          </div>
         ) : null}
       </div>
     </Section>
@@ -371,6 +404,7 @@ export default function ClientPage() {
         </div>
       </main>
       <Footer />
+      <Toaster />
     </div>
   )
 }

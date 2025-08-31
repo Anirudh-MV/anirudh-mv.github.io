@@ -1,83 +1,59 @@
 "use client"
+
+import React from "react"
+import Link from "next/link"
 import {
-  Calendar,
-  ExternalLink,
-  Github,
-  LinkIcon,
-  Linkedin,
-  Mail,
-  MapPin,
+  Sparkles,
   Moon,
   Sun,
-  Briefcase,
-  Phone,
-  AudioLines,
-  Sparkles,
-  Rss,
+  MapPin,
+  Calendar,
+  ExternalLink,
+  Mail,
+  LinkIcon
 } from "lucide-react"
-import type React from "react"
-
-import Link from "next/link"
 import { resume } from "@/data/resume"
+import { SocialItem } from "./typedef"
 
 function SocialButton({
-  type,
-  href,
-  label,
-}: { type: "github" | "linkedin" | "email" | "website" | "soundcloud" | "magic" | "substack"; href: string; label?: string }) {
+  socialItem
+}: {
+  socialItem: SocialItem
+}) {
+  const { href: linkHref, label, SocialIcon, action, visible } = socialItem
+  if (!visible) return null;
+
   const common = "size-5"
-  function getSocialIcon(type: string, common: string) {
-    switch (type) {
-      case "github":
-        return <Github className={common} aria-hidden="true" />
-      case "linkedin":
-        return <Linkedin className={common} aria-hidden="true" />
-      case "email":
-        return <Mail className={common} aria-hidden="true" />
-      case "soundcloud":
-        return <AudioLines className={common} aria-hidden="true" />
-      case "magic":
-        return <Sparkles 
-          className={`${common} text-purple-500 animate-pulse`}
-          style={{
-            animation: "pulse 0.2s linear infinite", // Adjust duration (e.g., 0.5s for faster pulse)
-          }}
-          aria-hidden="true" 
-        />
-      case "substack":
-        return <Rss className={`${common} text-orange-500`} aria-hidden="true" />
-      default:
-        return <LinkIcon className={common} aria-hidden="true" />
-    }
+
+  const isMagic: boolean = SocialIcon === Sparkles
+
+  let icon = <SocialIcon className={common} aria-hidden="true" />;
+  if (isMagic) {
+    // Handle magic button case
+    icon = (
+      <SocialIcon
+        className={`${common} text-purple-500 animate-pulse`}
+        style={{
+          animation: "pulse 0.2s linear infinite", // Adjust duration (e.g., 0.5s for faster pulse)
+        }}
+        aria-hidden="true"
+      />
+    );
   }
-  function getFinalLabel(type: string): string {
-    switch (type) {
-      case "github":
-        return "GitHub";
-      case "linkedin":
-        return "LinkedIn";
-      case "email":
-        return "Email";
-      case "soundcloud":
-        return "SoundCloud";
-      case "magic":
-        return "Magic Button";
-      default:
-        return "Website";
-    }
-  }
-  const icon = getSocialIcon(type, common)
-  const finalLabel = label ?? getFinalLabel(type)
+
+  const finalHref = action ? `${action}:${linkHref}` : linkHref;
+
   return (
     <Link
-      href={href}
-      aria-label={finalLabel}
+      href={finalHref}
+      aria-label={label}
       className={`inline-flex items-center gap-2 rounded-md border px-3 py-1.5 text-sm hover:bg-accent transition-colors ${
-        type === "magic" ? "hover:border-purple-400 hover:shadow-md hover:shadow-purple-100/90" : ""
+        isMagic ? "hover:border-purple-400 hover:shadow-md hover:shadow-purple-100/90" : ""
       }`}
+      target="_blank"
     >
       {icon}
-      <span className="hidden sm:inline">{finalLabel}</span>
+      <span className="hidden sm:inline">{label}</span>
     </Link>
   )
 }
@@ -156,12 +132,13 @@ function Hero() {
             </div>
             {resume.summary ? <p className="text-sm sm:text-base">{resume.summary}</p> : null}
             <div className="flex flex-wrap gap-2 pt-2">
-              {resume.links?.github ? <SocialButton type="github" href={resume.links.github} /> : null}
-              {resume.links?.linkedin ? <SocialButton type="linkedin" href={resume.links.linkedin} /> : null}
-              {resume.links?.substack ? <SocialButton type="substack" href={resume.links.substack} label="Substack" /> : null}
-              {resume.links?.soundcloud ? <SocialButton type="soundcloud" href={resume.links.soundcloud} /> : null}
-              {resume.links?.email ? <SocialButton type="email" href={`mailto:${resume.links.email}`} /> : null}
-              {resume.links?.magic ? <SocialButton type="magic" href={resume.links.magic} /> : null}
+              {Object.entries(resume.socials || {}).map(([key, value]) => {
+                return (
+                  <SocialButton
+                    socialItem={value}
+                  />
+                )
+              })}
             </div>
           </div>
         </div>
@@ -281,24 +258,24 @@ function Education() {
 }
 
 function Contact() {
-  if (!resume.links?.email && !resume.links?.website) return null
+  if (!resume.socials?.email.href && !resume.socials?.website.href) return null
   return (
     <Section id="contact" title="Contact">
       <div className="flex flex-wrap items-center gap-2">
-        {resume.links?.email ? (
+        {resume.socials?.email.href ? (
           <Link
-            href={`mailto:${resume.links.email}`}
+            href={`mailto:${resume.socials.email.href}`}
             className="inline-flex items-center gap-2 rounded-md border px-3 py-1.5 text-sm hover:bg-accent transition-colors"
           >
-            <Mail className="size-4" aria-hidden="true" /> {resume.links.email}
+            <Mail className="size-4" aria-hidden="true" /> {resume.socials.email.label}
           </Link>
         ) : null}
-        {resume.links?.website ? (
+        {resume.socials?.website.href ? (
           <Link
-            href={resume.links.website}
+            href={resume.socials.website.href}
             className="inline-flex items-center gap-2 rounded-md border px-3 py-1.5 text-sm hover:bg-accent transition-colors"
           >
-            <LinkIcon className="size-4" aria-hidden="true" /> {resume.links.website.replace(/^https?:\/\//, "")}
+            <LinkIcon className="size-4" aria-hidden="true" /> {resume.socials.website.label.replace(/^https?:\/\//, "")}
           </Link>
         ) : null}
       </div>

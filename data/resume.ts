@@ -3,6 +3,31 @@
 
 import type { Metadata } from "next"
 
+import { SocialItem } from "@/app/typedef"
+
+import {
+  Github,
+  Link as LinkIcon,
+  Linkedin,
+  Mail,
+  Phone,
+  AudioLines,
+  Sparkles,
+  Rss,
+} from "lucide-react"
+
+
+const socials: Record<string, SocialItem> = {
+  github: { href: "https://github.com/Anirudh-MV", label: "Github", SocialIcon: Github, visible: true },
+  linkedin: { href: "https://www.linkedin.com/in/anirudh-mv-3ba53879/", label: "LinkedIn", SocialIcon: Linkedin, visible: true },
+  substack: { href: "https://anirudhmv21.substack.com", label: "Substack", SocialIcon: Rss, visible: true },
+  soundcloud: { href: "https://soundcloud.com/anirudh-mv", label: "SoundCloud", SocialIcon: AudioLines, visible: true },
+  email: { href: "contact@anirudhmv.in", label: "Email", SocialIcon: Mail, action: "mailto", visible: true },
+  magic: { href: "https://www.youtube.com/watch?v=dQw4w9WgXcQ", label: "Magic Button", SocialIcon: Sparkles, visible: true },
+  phone: { href: "+91 xxxxxxxxxxx", label: "Phone", SocialIcon: Phone, action: "tel", visible: false },
+  website: { href: "https://anirudhmv.in", label: "Website", SocialIcon: LinkIcon, visible: false },
+}
+
 // Basic profile info
 export const resume = {
   name: "Anirudh MV",
@@ -12,20 +37,10 @@ export const resume = {
   location: "Bengaluru, India",
   availability: "Working at Satisfi Labs; Trying my best at FOSS contributions.",
   profile: {
-    imageSrc:
-      "/images/anirudh-mv.webp",
+    imageSrc: "/images/anirudh-mv.webp",
     imageAlt: "Photo of Anirudh MV looking cool while playing the bass on stage.",
   },
-  links: {
-    github: "https://github.com/Anirudh-MV",
-    linkedin: "https://www.linkedin.com/in/anirudh-mv-3ba53879/",
-    email: "contact@anirudhmv.in",
-    phone: "+91 xxxxxxxxxxx",
-    website: "https://anirudhmv.in",
-    soundcloud: "https://soundcloud.com/anirudh-mv",
-    magic: "https://www.youtube.com/watch?v=dQw4w9WgXcQ",
-    substack: "https://anirudhmv21.substack.com",
-  },
+  socials,
   nav: [
     { href: "#about", label: "About" },
     { href: "#experience", label: "Experience" },

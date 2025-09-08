@@ -59,7 +59,7 @@ export const resume = {
       description: "",
       highlights: [
       ],
-      tech: ["Node.js", "Python", "Flask", "GCP", "Kafka"],
+      tech: ["Node.js", "Python-Flask", "GCP", "Kafka", "MySQL", "MS-SQL Server Stored Procedures", "MySQL Stored Procedures"],
     },
     {
       company: "Ather Energy Ltd.",
@@ -74,7 +74,7 @@ export const resume = {
         "Resolved P0 production issues with hotfixes and optimized database queries for faster API responses.",
         "Initiated weekly team reviews to share work and personal learnings, promoting continuous education and collaboration.",
       ],
-      tech: ["Java", "Spring Boot", "Node.js", "PostgreSQL", "Kafka"],
+      tech: ["Java", "Spring Boot", "Node.js", "PostgreSQL", "Kafka", "Clickhouse"],
     },
     {
       company: "Ather Energy Ltd.",

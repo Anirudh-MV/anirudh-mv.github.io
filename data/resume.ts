@@ -126,7 +126,7 @@ export const resume = {
     "Kafka",
     "PostgreSQL",
     "Java",
-    "Springboot",
+    "Spring Boot",
     "BigQuery",
     "OOP",
     "ClickHouse",

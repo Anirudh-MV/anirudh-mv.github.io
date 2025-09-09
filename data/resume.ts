@@ -53,8 +53,8 @@ export const resume = {
   experience: [
     {
       company: "Satisfi Labs Inc.",
-      role: "Software Engineer",
-      period: "Jun. 2025 — Present",
+      role: "Technical Lead",
+      period: "June 2025 — Present",
       location: "Remote",
       description: "",
       highlights: [
@@ -64,7 +64,7 @@ export const resume = {
     {
       company: "Ather Energy Ltd.",
       role: "Senior Software Engineer",
-      period: "Apr. 2024 — May 2025",
+      period: "April 2024 — May 2025",
       location: "Bengaluru",
       description: "Led initiatives across backend services, database performance, and production reliability.",
       highlights: [
@@ -79,7 +79,7 @@ export const resume = {
     {
       company: "Ather Energy Ltd.",
       role: "Software Engineer",
-      period: "Apr. 2022 — Mar. 2024",
+      period: "April 2022 — March 2024",
       location: "Bengaluru",
       description: "Owned multiple Node/Express applications, deployment workflows, and reliability improvements.",
       highlights: [
@@ -93,7 +93,7 @@ export const resume = {
     {
       company: "iAXIS Technology Services Pvt. Ltd.",
       role: "Software and Product Engineer",
-      period: "Sep. 2020 — Mar. 2022",
+      period: "September 2020 — March 2022",
       location: "Bengaluru",
       description: "",
       highlights: [
@@ -127,6 +127,7 @@ export const resume = {
     "PostgreSQL",
     "Java",
     "Springboot",
+    "BigQuery",
     "OOP",
     "ClickHouse",
     "Git",
@@ -141,6 +142,7 @@ export const resume = {
     "PySpark",
     "ELK",
     "GitLab CI/CD",
+    "MySQL"
   ],
   // Education
   education: [

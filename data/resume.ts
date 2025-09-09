@@ -31,7 +31,7 @@ const socials: Record<string, SocialItem> = {
 // Basic profile info
 export const resume = {
   name: "Anirudh MV",
-  title: "Software Engineer | Software Architect | Backend Engineering",
+  title: "Technical Lead | Software Engineer | Software Architect | Backend Engineering",
   summary:
     "Experienced backend software developer with a proven track record of building and managing highly available, scalable, and cost-efficient systems. Proficient in multiple programming languages and passionate about creating innovative solutions that align with business goals. Driven by curiosity and continuous learning, I focus on improving system performance and optimizing costs.\n\nCurrently exploring NixOS and OPNSense in my free time.",
   location: "Bengaluru, India",

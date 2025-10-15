@@ -109,7 +109,7 @@ export const resume = {
       name: "Band Portfolio - Same as Them",
       role: "Maintainer",
       description: "Band portfolio and web presskit for the band Same as Them, a Bangalore-based Nepali alt-rock band, that I was a part of.",
-      link: "https://sameasthem.in",
+      link: "#",
       stack: ["Astro", "Node"],
     },
     {

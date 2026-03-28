@@ -33,7 +33,12 @@ export const resume = {
   name: "Anirudh MV",
   title: "Technical Lead | Software Engineer | Software Architect | Backend Engineering",
   summary:
-    "Experienced backend software developer with a proven track record of building and managing highly available, scalable, and cost-efficient systems. Proficient in multiple programming languages and passionate about creating innovative solutions that align with business goals. Driven by curiosity and continuous learning, I focus on improving system performance and optimizing costs.\n\nCurrently exploring NixOS and OPNSense in my free time.",
+    `Experienced backend software developer with a proven track record of building and managing highly available, scalable, and cost-efficient systems. 
+    Proficient in multiple programming languages and passionate about creating innovative solutions that align with business goals. 
+    Driven by curiosity and continuous learning, I focus on improving system performance and optimizing costs, mostly traditional but sometimes with a radical approach.
+    Currently exploring production-grade deployment of Frigate NVR and inner workings of Agentic AI coding tools (OpenCode).
+    Professional prompt writing and tab presser.
+    Self proclaimed electronics enthusiast.`,
   location: "Bengaluru, India",
   availability: "Working at Satisfi Labs; Trying my best at FOSS contributions.",
   profile: {
@@ -56,10 +61,10 @@ export const resume = {
       role: "Technical Lead",
       period: "June 2025 — Present",
       location: "Remote",
-      description: "",
+      description: "Building AI Agents that help businesses sell more effectively across channels and retain customers with personalized recommendations.",
       highlights: [
       ],
-      tech: ["Node.js", "Python-Flask", "GCP", "Kafka", "MySQL", "MS-SQL Server Stored Procedures", "MySQL Stored Procedures"],
+      tech: ["Node.js", "Python-Flask", "GCP", "Cloud Function/Run", "Cloud Build", "PHP", "MS-SQL Server Stored Procedures", "MySQL Stored Procedures"],
     },
     {
       company: "Ather Energy Ltd.",
@@ -106,9 +111,16 @@ export const resume = {
   // Projects
   projects: [
     {
+      name: "BLE Heart Rate Monitor",
+      role: "Maintainer",
+      description: "Client rendered website uses Web Bluetooth API (BLE Mode) to display the live heart rate data. There also exists an upper/lower limit reminder for the zone 2 training days. And an option to export the timeseries HR data (including data from historical runs stored in IndexedDB) as CSV.",
+      link: "https://hr.anirudhmv.in",
+      stack: ["Web Bluetooth API", "PWA", "IndexedDB"],
+    },
+    {
       name: "Band Portfolio - Same as Them",
       role: "Maintainer",
-      description: "Band portfolio and web presskit for the band Same as Them, a Bangalore-based Nepali alt-rock band, that I was a part of.",
+      description: "Band portfolio and web press-kit for the band Same as Them, a Bangalore-based Nepali alt-rock band, that I was a part of.",
       link: "#",
       stack: ["Astro", "Node"],
     },

@@ -290,18 +290,16 @@ function Contact() {
     <Section id="contact" title="Contact">
       <div className="flex flex-wrap items-center gap-2">
         {resume.socials?.email.href ? (
-          <div className="flex items-center group relative">
-            <div className="absolute inset-0 rounded-md border-2 border-green-500 opacity-0 group-hover:opacity-100 transition-opacity"></div>
+          <>
             <Link
               href={`mailto:${resume.socials.email.href}`}
-              className="inline-flex items-center gap-2 rounded-l-md border border-r-0 px-3 py-1.5 text-sm hover:bg-accent transition-colors relative z-10"
+              className="inline-flex items-center gap-2 rounded-md border px-3 py-1.5 text-sm hover:bg-accent transition-colors"
             >
               <Mail className="size-4" aria-hidden="true" /> {resume.socials.email.label}
             </Link>
             
             <Button
               onClick={() => copyToClipboard(resume.socials.email.href)}
-              className="inline-flex items-center gap-2 rounded-l-md border border-r-0 px-3 py-1.5 text-sm hover:bg-accent transition-colors relative z-10"
               aria-label="Copy email to clipboard"
               variant="outline"
               size="sm"
@@ -309,7 +307,7 @@ function Contact() {
             >
               {copied ? <Check className="size-4 text-green-500" /> : <Copy className="size-4" />}
             </Button>
-          </div>
+          </>
         ) : null}
       </div>
     </Section>

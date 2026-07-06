@@ -31,16 +31,16 @@ const socials: Record<string, SocialItem> = {
 // Basic profile info
 export const resume = {
   name: "Anirudh MV",
-  title: "Technical Lead | Software Engineer | Software Architect | Backend Engineering",
+  title: "Technical Lead | Backend & AI Platform Engineer | Distributed Systems",
   summary:
-    `Experienced backend software developer with a proven track record of building and managing highly available, scalable, and cost-efficient systems. 
-    Proficient in multiple programming languages and passionate about creating innovative solutions that align with business goals. 
-    Driven by curiosity and continuous learning, I focus on improving system performance and optimizing costs, mostly traditional but sometimes with a radical approach.
+    `Backend/platform engineer building production systems for AI products: conversational agents, data-ingestion pipelines, 
+    cloud services, and reliability tooling. I like working close to the messy parts of real systems — orchestration, databases, 
+    production debugging, cost/performance tradeoffs, and developer workflows — and turning them into boring, reliable infrastructure.
     Currently exploring production-grade deployment of Frigate NVR and inner workings of Agentic AI coding tools (OpenCode).
     Professional prompt writing and tab presser.
     Self proclaimed electronics enthusiast.`,
   location: "Bengaluru, India",
-  availability: "Working at Satisfi Labs; Trying my best at FOSS contributions.",
+  availability: "Working at Satisfi Labs; building backend, data, and platform systems for enterprise AI products.",
   profile: {
     imageSrc: "/images/anirudh-mv.webp",
     imageAlt: "Photo of Anirudh MV looking cool while playing the bass on stage.",
@@ -64,7 +64,24 @@ export const resume = {
       description: "Building AI Agents that help businesses sell more effectively across channels and retain customers with personalized recommendations.",
       highlights: [
       ],
-      tech: ["Node.js", "Python-Flask", "GCP", "Cloud Function/Run", "Cloud Build", "PHP", "MS-SQL Server Stored Procedures", "MySQL Stored Procedures"],
+      tech: [
+        "Node.js",
+        "TypeScript",
+        "Python",
+        "Flask",
+        "Airflow",
+        "Cloud Composer",
+        "GKE",
+        "Cloud Run",
+        "BigQuery",
+        "PostgreSQL",
+        "MySQL",
+        "MS SQL Server",
+        "Docker",
+        "Vitest",
+        "GCP",
+        "LLM Workflows",
+      ],
     },
     {
       company: "Ather Energy Ltd.",
@@ -113,48 +130,54 @@ export const resume = {
     {
       name: "BLE Heart Rate Monitor",
       role: "Maintainer",
-      description: "Client rendered website uses Web Bluetooth API (BLE Mode) to display the live heart rate data. There also exists an upper/lower limit reminder for the zone 2 training days. And an option to export the timeseries HR data (including data from historical runs stored in IndexedDB) as CSV.",
+      description: "Client-rendered website using the Web Bluetooth API to display live heart-rate data from BLE sensors. Includes upper/lower zone reminders for Zone 2 training and CSV export for historical run data stored in IndexedDB.",
       link: "https://hr.anirudhmv.in",
       stack: ["Web Bluetooth API", "PWA", "IndexedDB"],
     },
     {
       name: "Band Portfolio - Same as Them",
       role: "Maintainer",
-      description: "Band portfolio and web press-kit for the band Same as Them, a Bangalore-based Nepali alt-rock band, that I was a part of.",
+      description: "Band portfolio and web press-kit for Same as Them, a Bengaluru-based Nepali alt-rock band I was part of.",
       link: "#",
       stack: ["Astro", "Node"],
     },
     {
       name: "HelpApp",
       role: "Maintainer",
-      description: "WiFi Direct based Group Chat and Ledger app built for disaster management.",
+      description: "WiFi Direct-based group chat and ledger app built for disaster-management scenarios, using a custom application-layer protocol over TCP.",
       link: "https://github.com/Anirudh-MV/HelpApp",
       stack: ["Kotlin", "Android", "Custom application layer protocol over TCP"],
     },
   ],
   // Skills (flat list keeps things simple to maintain)
   skills: [
-    "NodeJS",
-    "Kafka",
-    "PostgreSQL",
+    "Node.js",
+    "TypeScript",
+    "Python",
+    "Flask",
     "Java",
     "Spring Boot",
+    "PostgreSQL",
+    "MySQL",
+    "MS SQL Server",
     "BigQuery",
-    "OOP",
     "ClickHouse",
-    "Git",
+    "Kafka",
+    "Airflow",
+    "PySpark",
     "Docker",
     "Kubernetes",
-    "Python3",
-    "Linux CLI & FS",
-    "Problem Solving",
-    "AWS",
+    "GKE",
+    "Cloud Run",
+    "Cloud Composer",
     "GCP",
-    "ESLint",
-    "PySpark",
-    "ELK",
+    "AWS",
+    "Git",
+    "Linux CLI & FS",
     "GitLab CI/CD",
-    "MySQL"
+    "ELK",
+    "OOP",
+    "Problem Solving",
   ],
   // Education
   education: [

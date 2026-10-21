@@ -14,6 +14,7 @@ import {
   AudioLines,
   Sparkles,
   Rss,
+  BookOpen,
 } from "lucide-react"
 
 
@@ -21,6 +22,7 @@ const socials: Record<string, SocialItem> = {
   github: { href: "https://github.com/Anirudh-MV", label: "Github", SocialIcon: Github, visible: true },
   linkedin: { href: "https://www.linkedin.com/in/anirudh-mv-3ba53879/", label: "LinkedIn", SocialIcon: Linkedin, visible: true },
   substack: { href: "https://anirudhmv21.substack.com", label: "Substack", SocialIcon: Rss, visible: true },
+  blog: { href: "/blog", label: "Blog", SocialIcon: BookOpen, visible: true },
   soundcloud: { href: "https://soundcloud.com/anirudh-mv", label: "SoundCloud", SocialIcon: AudioLines, visible: true },
   email: { href: "contact@anirudhmv.in", label: "Email", SocialIcon: Mail, action: "mailto", visible: true },
   magic: { href: "https://www.youtube.com/watch?v=dQw4w9WgXcQ", label: "Magic Button", SocialIcon: Sparkles, visible: true },

@@ -1,0 +1,2081 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Trail Braking Telemetry: MotoGP vs F1/GT</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                        mono: ['JetBrains Mono', 'monospace'],
+                    },
+                    colors: {
+                        motec: {
+                            bg: '#07090e',
+                            panel: '#0f131d',
+                            border: '#1e2738',
+                            grid: '#182030',
+                            bike: '#f97316',      // Neon Orange
+                            bikeLight: '#fdba74',
+                            car: '#06b6d4',       // Neon Cyan
+                            carLight: '#67e8f9',
+                            brake: '#ef4444',     // Red
+                            throttle: '#10b981',  // Emerald/Lime
+                            lean: '#eab308',      // Yellow
+                            accent: '#8b5cf6'     // Purple
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body {
+            background-color: #07090e;
+            color: #e2e8f0;
+            overflow-x: hidden;
+        }
+        /* Custom Range Slider */
+        input[type=range].telemetry-slider {
+            -webkit-appearance: none;
+            width: 100%;
+            background: transparent;
+        }
+        input[type=range].telemetry-slider:focus {
+            outline: none;
+        }
+        input[type=range].telemetry-slider::-webkit-slider-runnable-track {
+            width: 100%;
+            height: 10px;
+            cursor: pointer;
+            background: linear-gradient(90deg, 
+                #ef4444 0%, #ef4444 15%, 
+                #f97316 15%, #f97316 32%, 
+                #eab308 32%, #eab308 55%, 
+                #a855f7 55%, #a855f7 68%, 
+                #10b981 68%, #10b981 100%);
+            border-radius: 5px;
+            border: 1px solid #334155;
+        }
+        input[type=range].telemetry-slider::-webkit-slider-thumb {
+            height: 24px;
+            width: 14px;
+            border-radius: 3px;
+            background: #ffffff;
+            cursor: pointer;
+            -webkit-appearance: none;
+            margin-top: -8px;
+            box-shadow: 0 0 12px rgba(255, 255, 255, 0.9);
+            border: 2px solid #0f172a;
+        }
+        input[type=range].telemetry-slider::-moz-range-track {
+            width: 100%;
+            height: 10px;
+            cursor: pointer;
+            background: linear-gradient(90deg, 
+                #ef4444 0%, #ef4444 15%, 
+                #f97316 15%, #f97316 32%, 
+                #eab308 32%, #eab308 55%, 
+                #a855f7 55%, #a855f7 68%, 
+                #10b981 68%, #10b981 100%);
+            border-radius: 5px;
+            border: 1px solid #334155;
+        }
+        input[type=range].telemetry-slider::-moz-range-thumb {
+            height: 24px;
+            width: 14px;
+            border-radius: 3px;
+            background: #ffffff;
+            cursor: pointer;
+            box-shadow: 0 0 12px rgba(255, 255, 255, 0.9);
+            border: 2px solid #0f172a;
+        }
+
+        .carbon-bg {
+            background-color: #0b0f17;
+            background-image: radial-gradient(#1e293b 1px, transparent 1px);
+            background-size: 16px 16px;
+        }
+        .glow-orange {
+            box-shadow: 0 0 15px -3px rgba(249, 115, 22, 0.35);
+        }
+        .glow-cyan {
+            box-shadow: 0 0 15px -3px rgba(6, 182, 212, 0.35);
+        }
+        /* Scrollbar styling */
+        ::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #07090e;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #1e293b;
+            border-radius: 3px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #334155;
+        }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col font-sans selection:bg-cyan-500 selection:text-black">
+
+    <!-- TOP HEADER / TELEMETRY BAR -->
+    <header class="bg-motec-panel border-b border-motec-border sticky top-0 z-30 px-4 py-2.5 shadow-lg">
+        <div class="max-w-[1600px] mx-auto flex flex-wrap items-center justify-between gap-3">
+            <!-- Brand & Title -->
+            <div class="flex items-center gap-3">
+                <div class="w-9 h-9 rounded bg-gradient-to-br from-orange-500 to-cyan-500 flex items-center justify-center text-black font-mono font-extrabold text-lg shadow">
+                    TB
+                </div>
+                <div>
+                    <div class="flex items-center gap-2">
+                        <h1 class="font-mono font-bold text-base sm:text-lg tracking-wider text-white uppercase">
+                            Trail Braking Telemetry
+                        </h1>
+                        <span class="hidden sm:inline-block text-[10px] font-mono uppercase px-2 py-0.5 bg-slate-800 text-slate-300 rounded border border-slate-700">
+                            Tarmac Physics Sim
+                        </span>
+                    </div>
+                    <p class="text-xs text-slate-400">How much brake pressure at every % of a corner: <span class="text-orange-400 font-semibold">Motorcycle (2 Tires)</span> vs <span class="text-cyan-400 font-semibold">Car (4 Tires)</span></p>
+                </div>
+            </div>
+
+            <!-- Mode Switcher & Quick Controls -->
+            <div class="flex items-center gap-2 sm:gap-4 flex-wrap">
+                <!-- Mode Switcher -->
+                <div class="inline-flex rounded-lg bg-slate-900 p-1 border border-slate-800">
+                    <button id="mode-both" onclick="setViewMode('both')" class="px-3 py-1.5 rounded-md text-xs font-mono font-semibold transition-all bg-slate-800 text-white shadow">
+                        <i class="fa-solid fa-table-columns mr-1 text-purple-400"></i>Side-by-Side
+                    </button>
+                    <button id="mode-bike" onclick="setViewMode('bike')" class="px-3 py-1.5 rounded-md text-xs font-mono font-semibold transition-all text-slate-400 hover:text-orange-400">
+                        <i class="fa-solid fa-motorcycle mr-1 text-orange-500"></i>Bike Focus
+                    </button>
+                    <button id="mode-car" onclick="setViewMode('car')" class="px-3 py-1.5 rounded-md text-xs font-mono font-semibold transition-all text-slate-400 hover:text-cyan-400">
+                        <i class="fa-solid fa-car-side mr-1 text-cyan-400"></i>Car Focus
+                    </button>
+                </div>
+
+                <!-- Speed Multiplier -->
+                <div class="hidden md:flex items-center gap-1 bg-slate-900 px-2.5 py-1 rounded-lg border border-slate-800 text-xs font-mono">
+                    <span class="text-slate-400 mr-1">SIM SPEED:</span>
+                    <button onclick="setSimSpeed(0.25)" id="spd-025" class="px-1.5 py-0.5 rounded bg-slate-800 text-cyan-400 font-bold">0.25x</button>
+                    <button onclick="setSimSpeed(0.5)" id="spd-05" class="px-1.5 py-0.5 rounded text-slate-400 hover:text-white">0.5x</button>
+                    <button onclick="setSimSpeed(1)" id="spd-1" class="px-1.5 py-0.5 rounded text-slate-400 hover:text-white">1.0x</button>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- MASTER CORNER SCRUBBER & PHASE BAR -->
+    <section class="bg-[#0b0e17] border-b border-motec-border px-4 py-3 sticky top-[57px] z-20 shadow-md">
+        <div class="max-w-[1600px] mx-auto">
+            <div class="flex flex-col md:flex-row items-stretch md:items-center gap-4">
+                
+                <!-- Play/Pause & Step Controls -->
+                <div class="flex items-center justify-between md:justify-start gap-2 shrink-0">
+                    <button id="play-btn" onclick="togglePlay()" class="flex items-center justify-center gap-2 px-4 py-2 rounded-lg font-mono font-bold text-xs uppercase tracking-wider bg-emerald-500 hover:bg-emerald-400 text-black transition shadow-lg shadow-emerald-500/20">
+                        <i id="play-icon" class="fa-solid fa-play"></i>
+                        <span id="play-text">Play Lap</span>
+                    </button>
+                    <button onclick="stepProgress(-1)" class="p-2 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 text-xs font-mono" title="Step Back 1%">
+                        <i class="fa-solid fa-backward-step"></i>
+                    </button>
+                    <button onclick="stepProgress(1)" class="p-2 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 text-xs font-mono" title="Step Forward 1%">
+                        <i class="fa-solid fa-forward-step"></i>
+                    </button>
+
+                    <!-- Current Progress Readout -->
+                    <div class="bg-slate-900 border border-slate-700 rounded-lg px-3 py-1.5 flex items-center gap-2">
+                        <span class="text-[10px] font-mono uppercase text-slate-400">CORNER POS:</span>
+                        <span id="progress-readout" class="font-mono font-extrabold text-base text-white w-12 text-right">38%</span>
+                    </div>
+                </div>
+
+                <!-- Interactive Slider + Phase Jump Buttons -->
+                <div class="flex-1 flex flex-col gap-1.5">
+                    <!-- Quick Jump Phase Pills -->
+                    <div class="grid grid-cols-6 gap-1 text-[10px] font-mono">
+                        <button onclick="setProgress(5)" id="phase-btn-0" class="py-1 px-1.5 rounded bg-slate-900 hover:bg-slate-800 border border-slate-800 text-slate-300 truncate text-left transition">
+                            <span class="inline-block w-2 h-2 rounded-full bg-red-500 mr-1"></span>1. Straight (0-15%)
+                        </button>
+                        <button onclick="setProgress(22)" id="phase-btn-1" class="py-1 px-1.5 rounded bg-slate-900 hover:bg-slate-800 border border-slate-800 text-slate-300 truncate text-left transition">
+                            <span class="inline-block w-2 h-2 rounded-full bg-orange-500 mr-1"></span>2. Brake Zone (15-32%)
+                        </button>
+                        <button onclick="setProgress(38)" id="phase-btn-2" class="py-1 px-1.5 rounded bg-slate-900 hover:bg-slate-800 border border-slate-800 text-slate-300 truncate text-left transition">
+                            <span class="inline-block w-2 h-2 rounded-full bg-amber-400 mr-1"></span>3. Turn-In (32-44%)
+                        </button>
+                        <button onclick="setProgress(50)" id="phase-btn-3" class="py-1 px-1.5 rounded bg-slate-900 hover:bg-slate-800 border border-slate-800 text-slate-300 truncate text-left transition">
+                            <span class="inline-block w-2 h-2 rounded-full bg-yellow-300 mr-1"></span>4. Deep Trail (44-58%)
+                        </button>
+                        <button onclick="setProgress(63)" id="phase-btn-4" class="py-1 px-1.5 rounded bg-slate-900 hover:bg-slate-800 border border-slate-800 text-slate-300 truncate text-left transition">
+                            <span class="inline-block w-2 h-2 rounded-full bg-purple-400 mr-1"></span>5. Apex (58-70%)
+                        </button>
+                        <button onclick="setProgress(82)" id="phase-btn-5" class="py-1 px-1.5 rounded bg-slate-900 hover:bg-slate-800 border border-slate-800 text-slate-300 truncate text-left transition">
+                            <span class="inline-block w-2 h-2 rounded-full bg-emerald-400 mr-1"></span>6. Exit (70-100%)
+                        </button>
+                    </div>
+
+                    <!-- Slider -->
+                    <div class="relative flex items-center">
+                        <input id="corner-slider" type="range" min="0" max="100" step="0.5" value="38" class="telemetry-slider" oninput="onSliderInput(this.value)">
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- MAIN DASHBOARD WORKSPACE -->
+    <main class="max-w-[1600px] w-full mx-auto px-4 py-4 flex-1 flex flex-col gap-4">
+
+        <!-- TOP ROW: TRACK MAP (LEFT) + TELEMETRY GRAPHS (RIGHT) -->
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-4">
+
+            <!-- 1. INTERACTIVE TOP-DOWN TRACK MAP (5 COLS) -->
+            <div class="lg:col-span-5 bg-motec-panel border border-motec-border rounded-xl p-3.5 flex flex-col justify-between shadow-lg">
+                <div class="flex items-center justify-between mb-2">
+                    <div>
+                        <h2 class="font-mono font-bold text-sm uppercase tracking-wider text-white flex items-center gap-2">
+                            <i class="fa-solid fa-route text-cyan-400"></i>
+                            Top-Down Corner & Force Vectors
+                        </h2>
+                        <p class="text-[11px] text-slate-400">Click or drag anywhere on the racing line to scrub position</p>
+                    </div>
+                    <!-- Line Legend -->
+                    <div class="flex items-center gap-3 text-[11px] font-mono">
+                        <span class="flex items-center gap-1 text-orange-400"><span class="w-2.5 h-2.5 rounded-full bg-orange-500 inline-block"></span>Bike Line</span>
+                        <span class="flex items-center gap-1 text-cyan-400"><span class="w-2.5 h-2.5 rounded-full bg-cyan-400 inline-block"></span>Car Line</span>
+                    </div>
+                </div>
+
+                <!-- Track Canvas Container -->
+                <div class="relative w-full aspect-[4/3] bg-[#070a10] rounded-lg border border-slate-800 overflow-hidden cursor-pointer">
+                    <canvas id="trackCanvas" class="w-full h-full block"></canvas>
+
+                    <!-- Floating Corner Phase Badge on Map -->
+                    <div class="absolute top-2.5 left-2.5 bg-slate-950/90 backdrop-blur border border-slate-800 rounded-lg px-2.5 py-1.5 pointer-events-none">
+                        <div class="text-[10px] font-mono uppercase text-slate-400">Current Zone</div>
+                        <div id="map-zone-title" class="font-mono font-bold text-xs text-amber-400">3. Turn-In & Trail Initiation</div>
+                    </div>
+
+                    <!-- Vector Legend Overlay -->
+                    <div class="absolute bottom-2.5 right-2.5 bg-slate-950/90 backdrop-blur border border-slate-800 rounded-lg px-2.5 py-1.5 pointer-events-none text-[10px] font-mono space-y-0.5">
+                        <div class="flex items-center gap-1.5 text-red-400">
+                            <span class="w-3 h-0.5 bg-red-500 inline-block"></span> Braking Vector (Longitudinal)
+                        </div>
+                        <div class="flex items-center gap-1.5 text-yellow-400">
+                            <span class="w-3 h-0.5 bg-yellow-400 inline-block"></span> Cornering Vector (Lateral G)
+                        </div>
+                        <div class="flex items-center gap-1.5 text-emerald-400">
+                            <span class="w-3 h-0.5 bg-emerald-400 inline-block"></span> Drive Vector (Acceleration)
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Quick Instant Comparison Bar under Map -->
+                <div class="mt-3 grid grid-cols-2 gap-2.5 pt-2 border-t border-slate-800/80 font-mono text-xs">
+                    <!-- Bike Quick Pill -->
+                    <div class="bg-slate-900/90 border border-orange-500/30 rounded-lg p-2.5 flex items-center justify-between">
+                        <div>
+                            <div class="text-[10px] text-orange-400 font-bold uppercase flex items-center gap-1">
+                                <i class="fa-solid fa-motorcycle"></i> Motorcycle @ <span class="pos-pct">38%</span>
+                            </div>
+                            <div class="text-slate-300 text-[11px] mt-0.5">
+                                Front Brake: <span id="quick-bike-brake" class="font-bold text-white">54%</span> | Lean: <span id="quick-bike-lean" class="font-bold text-amber-400">43°</span>
+                            </div>
+                        </div>
+                        <div id="quick-bike-speed" class="text-right font-extrabold text-sm text-orange-400">118 <span class="text-[10px] font-normal text-slate-400">km/h</span></div>
+                    </div>
+
+                    <!-- Car Quick Pill -->
+                    <div class="bg-slate-900/90 border border-cyan-500/30 rounded-lg p-2.5 flex items-center justify-between">
+                        <div>
+                            <div class="text-[10px] text-cyan-400 font-bold uppercase flex items-center gap-1">
+                                <i class="fa-solid fa-car-side"></i> Race Car @ <span class="pos-pct">38%</span>
+                            </div>
+                            <div class="text-slate-300 text-[11px] mt-0.5">
+                                Brake Pedal: <span id="quick-car-brake" class="font-bold text-white">68%</span> | Steer: <span id="quick-car-steer" class="font-bold text-amber-400">55%</span>
+                            </div>
+                        </div>
+                        <div id="quick-car-speed" class="text-right font-extrabold text-sm text-cyan-400">134 <span class="text-[10px] font-normal text-slate-400">km/h</span></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 2. SYNCHRONIZED TELEMETRY GRAPHS (7 COLS) -->
+            <div class="lg:col-span-7 bg-motec-panel border border-motec-border rounded-xl p-3.5 flex flex-col justify-between shadow-lg">
+                <div class="flex flex-wrap items-center justify-between gap-2 mb-2">
+                    <div>
+                        <h2 class="font-mono font-bold text-sm uppercase tracking-wider text-white flex items-center gap-2">
+                            <i class="fa-solid fa-wave-square text-orange-400"></i>
+                            Synchronized Telemetry Traces (0% – 100% Corner)
+                        </h2>
+                        <p class="text-[11px] text-slate-400">Notice the "100 Points of Grip" crossover: As Lean/Steering rises, Brake Pressure must taper off</p>
+                    </div>
+
+                    <!-- Trace Filter Toggles -->
+                    <div class="flex items-center gap-1.5 text-[11px] font-mono">
+                        <button onclick="toggleTrace('brake')" id="trace-btn-brake" class="px-2 py-1 rounded bg-red-500/20 border border-red-500 text-red-300 font-semibold">
+                            Brake %
+                        </button>
+                        <button onclick="toggleTrace('lean')" id="trace-btn-lean" class="px-2 py-1 rounded bg-amber-500/20 border border-amber-500 text-amber-300 font-semibold">
+                            Lean / Steer %
+                        </button>
+                        <button onclick="toggleTrace('throttle')" id="trace-btn-throttle" class="px-2 py-1 rounded bg-emerald-500/20 border border-emerald-500 text-emerald-300 font-semibold">
+                            Throttle %
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Telemetry Canvas Container -->
+                <div class="relative w-full flex-1 min-h-[270px] sm:min-h-[320px] bg-[#070a10] rounded-lg border border-slate-800 overflow-hidden cursor-ew-resize">
+                    <canvas id="telemetryCanvas" class="w-full h-full block"></canvas>
+                </div>
+
+                <!-- Telemetry Key Takeaway Callout Below Graph -->
+                <div class="mt-3 bg-slate-900/95 border border-slate-800 rounded-lg p-2.5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 text-xs">
+                    <div class="flex items-start sm:items-center gap-2.5">
+                        <span class="px-2 py-1 rounded bg-red-500/20 border border-red-500/40 text-red-400 font-mono font-bold text-[11px] shrink-0">
+                            BRAKE PROFILE DIFF
+                        </span>
+                        <p id="telemetry-insight-text" class="text-slate-300 leading-relaxed">
+                            At <strong class="text-white">38% (Turn-In)</strong>: The car still holds <strong class="text-cyan-400">68% brake pressure</strong> to pin the front axle down, while the bike has already bled off to <strong class="text-orange-400">54%</strong> because lean angle is rapidly eating up the front tire's circular contact patch.
+                        </p>
+                    </div>
+                    <div class="flex items-center gap-3 shrink-0 font-mono text-[11px] text-slate-400 border-t sm:border-t-0 pt-1.5 sm:pt-0 w-full sm:w-auto justify-end">
+                        <span>Solid = <strong class="text-orange-400">Bike</strong></span>
+                        <span>Dashed = <strong class="text-cyan-400">Car</strong></span>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
+        <!-- MIDDLE ROW: THE FRICTION CIRCLE (TRACTION BUDGET) + LIVE BRAKE/GRIP BARS -->
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-4">
+
+            <!-- 3. REAL-TIME 2D FRICTION CIRCLE (G-G DIAGRAM) (5 COLS) -->
+            <div class="lg:col-span-5 bg-motec-panel border border-motec-border rounded-xl p-3.5 flex flex-col justify-between shadow-lg">
+                <div class="flex items-center justify-between mb-2">
+                    <div>
+                        <h2 class="font-mono font-bold text-sm uppercase tracking-wider text-white flex items-center gap-2">
+                            <i class="fa-solid fa-circle-dot text-red-400"></i>
+                            The Friction Circle (Traction Budget)
+                        </h2>
+                        <p class="text-[11px] text-slate-400">Combined G-Force Vector: <span class="text-white font-mono">√(Braking G² + Cornering G²) ≤ 100% Grip</span></p>
+                    </div>
+                    <span class="text-[10px] font-mono px-2 py-0.5 rounded bg-slate-800 text-slate-300 border border-slate-700">G-G Diagram</span>
+                </div>
+
+                <div class="grid grid-cols-1 sm:grid-cols-12 gap-3 items-center my-auto">
+                    <!-- Friction Circle Canvas -->
+                    <div class="sm:col-span-7 relative aspect-square max-h-[260px] mx-auto w-full bg-[#070a10] rounded-lg border border-slate-800 overflow-hidden">
+                        <canvas id="frictionCanvas" class="w-full h-full block"></canvas>
+                    </div>
+
+                    <!-- Traction Budget Breakdown Metrics -->
+                    <div class="sm:col-span-5 flex flex-col gap-2.5 font-mono">
+                        <!-- Bike Grip Usage Card -->
+                        <div id="fc-card-bike" class="bg-slate-900 border border-orange-500/40 rounded-lg p-2.5">
+                            <div class="flex items-center justify-between text-xs mb-1">
+                                <span class="text-orange-400 font-bold"><i class="fa-solid fa-motorcycle mr-1"></i>BIKE TIRE LOAD</span>
+                                <span id="bike-grip-total" class="font-extrabold text-white">92%</span>
+                            </div>
+                            <div class="w-full h-2 bg-slate-800 rounded-full overflow-hidden mb-2">
+                                <div id="bike-grip-bar" class="h-full bg-gradient-to-r from-orange-500 to-red-500 transition-all duration-75" style="width: 92%"></div>
+                            </div>
+                            <div class="grid grid-cols-2 gap-1 text-[10px] text-slate-400">
+                                <div>Longitudinal: <span id="bike-long-g" class="text-white font-semibold">-0.62G</span></div>
+                                <div>Lateral: <span id="bike-lat-g" class="text-amber-400 font-semibold">0.88G</span></div>
+                            </div>
+                            <div id="bike-risk-badge" class="mt-1.5 text-[10px] px-1.5 py-0.5 rounded bg-orange-500/10 text-orange-300 border border-orange-500/30">
+                                Critical: Front washout = Instant Lowside
+                            </div>
+                        </div>
+
+                        <!-- Car Grip Usage Card -->
+                        <div id="fc-card-car" class="bg-slate-900 border border-cyan-500/40 rounded-lg p-2.5">
+                            <div class="flex items-center justify-between text-xs mb-1">
+                                <span class="text-cyan-400 font-bold"><i class="fa-solid fa-car-side mr-1"></i>CAR TIRE LOAD</span>
+                                <span id="car-grip-total" class="font-extrabold text-white">96%</span>
+                            </div>
+                            <div class="w-full h-2 bg-slate-800 rounded-full overflow-hidden mb-2">
+                                <div id="car-grip-bar" class="h-full bg-gradient-to-r from-cyan-400 to-purple-500 transition-all duration-75" style="width: 96%"></div>
+                            </div>
+                            <div class="grid grid-cols-2 gap-1 text-[10px] text-slate-400">
+                                <div>Longitudinal: <span id="car-long-g" class="text-white font-semibold">-0.85G</span></div>
+                                <div>Lateral: <span id="car-lat-g" class="text-amber-400 font-semibold">0.94G</span></div>
+                            </div>
+                            <div id="car-risk-badge" class="mt-1.5 text-[10px] px-1.5 py-0.5 rounded bg-cyan-500/10 text-cyan-300 border border-cyan-500/30">
+                                Benign: 1-2% slip angle maximizes rotation
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="mt-2 pt-2 border-t border-slate-800/80 text-[11px] text-slate-400 flex items-center justify-between">
+                    <span><strong class="text-orange-400">Orange Circle:</strong> Bike dynamic grip envelope</span>
+                    <span><strong class="text-cyan-400">Cyan Circle:</strong> Car aero + 4-tire envelope</span>
+                </div>
+            </div>
+
+            <!-- 4. DYNAMIC PHYSICS & GEOMETRY COMPARISON PANEL (7 COLS) -->
+            <div class="lg:col-span-7 bg-motec-panel border border-motec-border rounded-xl p-3.5 flex flex-col justify-between shadow-lg">
+                <!-- Phase Header Banner -->
+                <div class="bg-slate-900 border border-slate-800 rounded-lg p-3 mb-3 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                    <div>
+                        <div class="flex items-center gap-2">
+                            <span id="phase-number-badge" class="px-2 py-0.5 text-[10px] font-mono font-bold uppercase rounded bg-amber-500 text-black">
+                                PHASE 3 OF 6
+                            </span>
+                            <h3 id="phase-main-title" class="font-mono font-extrabold text-base text-white">
+                                Turn-In & Trail Braking Initiation (32% – 44%)
+                            </h3>
+                        </div>
+                        <p id="phase-main-summary" class="text-xs text-slate-300 mt-1">
+                            As you tip into the corner, you MUST trade brake pressure for lean/steering angle. Notice how the motorcycle bleeds brake off earlier and smoother than the car.
+                        </p>
+                    </div>
+                </div>
+
+                <!-- Side-by-Side Vehicle Cards (Adapts with View Mode) -->
+                <div id="comparison-cards-grid" class="grid grid-cols-1 md:grid-cols-2 gap-3 flex-1">
+
+                    <!-- MOTORCYCLE TELEMETRY & GEOMETRY CARD -->
+                    <div id="bike-detail-card" class="bg-slate-900/90 border border-orange-500/40 rounded-xl p-3.5 flex flex-col justify-between glow-orange">
+                        <div>
+                            <!-- Card Header -->
+                            <div class="flex items-center justify-between border-b border-slate-800 pb-2 mb-3">
+                                <div class="flex items-center gap-2">
+                                    <div class="w-7 h-7 rounded bg-orange-500/20 border border-orange-500/50 flex items-center justify-center text-orange-400">
+                                        <i class="fa-solid fa-motorcycle"></i>
+                                    </div>
+                                    <div>
+                                        <h4 class="font-mono font-bold text-xs uppercase text-orange-400">Motorcycle (Tarmac)</h4>
+                                        <p class="text-[10px] text-slate-400">2 Round Tires • Hinged Steering Head</p>
+                                    </div>
+                                </div>
+                                <div class="text-right font-mono">
+                                    <span class="text-[10px] text-slate-400 block">LEAN ANGLE</span>
+                                    <span id="bike-lean-deg" class="text-base font-extrabold text-amber-400">43° <span class="text-[10px] text-slate-500">/ 60°</span></span>
+                                </div>
+                            </div>
+
+                            <!-- Live Input Bars -->
+                            <div class="space-y-2 font-mono text-xs mb-3">
+                                <!-- Front Brake -->
+                                <div>
+                                    <div class="flex justify-between mb-0.5">
+                                        <span class="text-slate-300">Front Brake Lever (2-Finger)</span>
+                                        <span id="bike-fbrake-val" class="font-bold text-red-400">54%</span>
+                                    </div>
+                                    <div class="w-full h-2.5 bg-slate-950 rounded overflow-hidden border border-slate-800">
+                                        <div id="bike-fbrake-bar" class="h-full bg-red-500 transition-all duration-75" style="width: 54%"></div>
+                                    </div>
+                                </div>
+
+                                <!-- Rear Brake -->
+                                <div>
+                                    <div class="flex justify-between mb-0.5">
+                                        <span class="text-slate-300 text-[11px]">Rear Brake (Squat / Anti-Wheelie)</span>
+                                        <span id="bike-rbrake-val" class="font-bold text-rose-300 text-[11px]">12%</span>
+                                    </div>
+                                    <div class="w-full h-1.5 bg-slate-950 rounded overflow-hidden border border-slate-800">
+                                        <div id="bike-rbrake-bar" class="h-full bg-rose-400 transition-all duration-75" style="width: 12%"></div>
+                                    </div>
+                                </div>
+
+                                <!-- Fork Compression & Throttle -->
+                                <div class="grid grid-cols-2 gap-2 pt-1">
+                                    <div class="bg-slate-950/80 p-2 rounded border border-slate-800">
+                                        <div class="flex justify-between text-[10px] text-slate-400 mb-1">
+                                            <span>FORK STROKE</span>
+                                            <span id="bike-fork-val" class="text-cyan-300 font-bold">78%</span>
+                                        </div>
+                                        <div class="w-full h-1.5 bg-slate-800 rounded overflow-hidden">
+                                            <div id="bike-fork-bar" class="h-full bg-cyan-400 transition-all duration-75" style="width: 78%"></div>
+                                        </div>
+                                    </div>
+                                    <div class="bg-slate-950/80 p-2 rounded border border-slate-800">
+                                        <div class="flex justify-between text-[10px] text-slate-400 mb-1">
+                                            <span>THROTTLE</span>
+                                            <span id="bike-throttle-val" class="text-emerald-400 font-bold">0%</span>
+                                        </div>
+                                        <div class="w-full h-1.5 bg-slate-800 rounded overflow-hidden">
+                                            <div id="bike-throttle-bar" class="h-full bg-emerald-500 transition-all duration-75" style="width: 0%"></div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Geometry & Physics Specifics Grid -->
+                            <div class="grid grid-cols-3 gap-1.5 font-mono text-[10px] mb-3">
+                                <div class="bg-slate-950 p-2 rounded border border-slate-800/80">
+                                    <span class="text-slate-500 block">RAKE / TRAIL</span>
+                                    <span id="bike-rake-val" class="text-orange-300 font-bold">21.8° / 86mm</span>
+                                    <span id="bike-rake-note" class="block text-[9px] text-slate-400">Steep & Agile</span>
+                                </div>
+                                <div class="bg-slate-950 p-2 rounded border border-slate-800/80">
+                                    <span class="text-slate-500 block">BRAKE BIAS</span>
+                                    <span id="bike-bias-val" class="text-white font-bold">92%F / 8%R</span>
+                                    <span class="block text-[9px] text-slate-400">Rear lightened</span>
+                                </div>
+                                <div class="bg-slate-950 p-2 rounded border border-slate-800/80">
+                                    <span class="text-slate-500 block">FRONT PATCH</span>
+                                    <span id="bike-patch-val" class="text-emerald-300 font-bold">128% Area</span>
+                                    <span class="block text-[9px] text-slate-400">Squished rubber</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Bike Coach Commentary -->
+                        <div class="bg-orange-950/20 border border-orange-500/30 rounded-lg p-2.5 text-xs text-slate-200">
+                            <div class="font-mono font-bold text-[10px] text-orange-400 uppercase mb-0.5 flex items-center gap-1">
+                                <i class="fa-solid fa-helmet-safety"></i> Why Trail Brake the Bike Here:
+                            </div>
+                            <p id="bike-physics-desc" class="text-[11px] leading-relaxed text-slate-300">
+                                Keeping 54% front brake compresses the forks, shortening wheelbase and steepening rake angle so the bike points into the turn effortlessly. If you released the brake abruptly at turn-in, the forks would rebound ("pogo"), widening your radius and shrinking the front tire contact patch right when you need grip most!
+                            </p>
+                        </div>
+                    </div>
+
+                    <!-- CAR TELEMETRY & GEOMETRY CARD -->
+                    <div id="car-detail-card" class="bg-slate-900/90 border border-cyan-500/40 rounded-xl p-3.5 flex flex-col justify-between glow-cyan">
+                        <div>
+                            <!-- Card Header -->
+                            <div class="flex items-center justify-between border-b border-slate-800 pb-2 mb-3">
+                                <div class="flex items-center gap-2">
+                                    <div class="w-7 h-7 rounded bg-cyan-500/20 border border-cyan-500/50 flex items-center justify-center text-cyan-400">
+                                        <i class="fa-solid fa-car-side"></i>
+                                    </div>
+                                    <div>
+                                        <h4 class="font-mono font-bold text-xs uppercase text-cyan-400">Race Car (Tarmac)</h4>
+                                        <p class="text-[10px] text-slate-400">4 Flat Tires • Fixed Wheelbase + Aero</p>
+                                    </div>
+                                </div>
+                                <div class="text-right font-mono">
+                                    <span class="text-[10px] text-slate-400 block">STEERING INPUT</span>
+                                    <span id="car-steer-deg" class="text-base font-extrabold text-amber-400">55% <span class="text-[10px] text-slate-500">Lock</span></span>
+                                </div>
+                            </div>
+
+                            <!-- Live Input Bars -->
+                            <div class="space-y-2 font-mono text-xs mb-3">
+                                <!-- Hydraulic Brake Pedal -->
+                                <div>
+                                    <div class="flex justify-between mb-0.5">
+                                        <span class="text-slate-300">Brake Pedal Pressure (4-Wheel)</span>
+                                        <span id="car-brake-val" class="font-bold text-red-400">68%</span>
+                                    </div>
+                                    <div class="w-full h-2.5 bg-slate-950 rounded overflow-hidden border border-slate-800">
+                                        <div id="car-brake-bar" class="h-full bg-red-500 transition-all duration-75" style="width: 68%"></div>
+                                    </div>
+                                </div>
+
+                                <!-- Front vs Rear Axle Weight Split Bar -->
+                                <div>
+                                    <div class="flex justify-between mb-0.5 text-[11px]">
+                                        <span class="text-cyan-300">Front Axle Load: <strong id="car-fload-val">66%</strong></span>
+                                        <span class="text-slate-400">Rear Axle Load: <strong id="car-rload-val">34%</strong></span>
+                                    </div>
+                                    <div class="w-full h-1.5 bg-slate-800 rounded overflow-hidden flex">
+                                        <div id="car-fload-bar" class="h-full bg-cyan-400 transition-all duration-75" style="width: 66%"></div>
+                                        <div id="car-rload-bar" class="h-full bg-purple-500 transition-all duration-75" style="width: 34%"></div>
+                                    </div>
+                                </div>
+
+                                <!-- Yaw Rotation & Throttle -->
+                                <div class="grid grid-cols-2 gap-2 pt-1">
+                                    <div class="bg-slate-950/80 p-2 rounded border border-slate-800">
+                                        <div class="flex justify-between text-[10px] text-slate-400 mb-1">
+                                            <span>YAW ROTATION</span>
+                                            <span id="car-yaw-val" class="text-purple-400 font-bold">82%</span>
+                                        </div>
+                                        <div class="w-full h-1.5 bg-slate-800 rounded overflow-hidden">
+                                            <div id="car-yaw-bar" class="h-full bg-purple-400 transition-all duration-75" style="width: 82%"></div>
+                                        </div>
+                                    </div>
+                                    <div class="bg-slate-950/80 p-2 rounded border border-slate-800">
+                                        <div class="flex justify-between text-[10px] text-slate-400 mb-1">
+                                            <span>THROTTLE</span>
+                                            <span id="car-throttle-val" class="text-emerald-400 font-bold">0%</span>
+                                        </div>
+                                        <div class="w-full h-1.5 bg-slate-800 rounded overflow-hidden">
+                                            <div id="car-throttle-bar" class="h-full bg-emerald-500 transition-all duration-75" style="width: 0%"></div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Geometry & Physics Specifics Grid -->
+                            <div class="grid grid-cols-3 gap-1.5 font-mono text-[10px] mb-3">
+                                <div class="bg-slate-950 p-2 rounded border border-slate-800/80">
+                                    <span class="text-slate-500 block">OUTSIDE FRONT</span>
+                                    <span id="car-outtire-val" class="text-cyan-300 font-bold">44% Total Wt</span>
+                                    <span class="block text-[9px] text-slate-400">Diagonal pitch</span>
+                                </div>
+                                <div class="bg-slate-950 p-2 rounded border border-slate-800/80">
+                                    <span class="text-slate-500 block">BRAKE BIAS</span>
+                                    <span id="car-bias-val" class="text-white font-bold">58%F / 42%R</span>
+                                    <span class="block text-[9px] text-slate-400">Fixed hydraulic</span>
+                                </div>
+                                <div class="bg-slate-950 p-2 rounded border border-slate-800/80">
+                                    <span class="text-slate-500 block">HANDLING STATE</span>
+                                    <span id="car-balance-val" class="text-amber-300 font-bold">Neutral Oversteer</span>
+                                    <span class="block text-[9px] text-slate-400">Cures understeer</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Car Coach Commentary -->
+                        <div class="bg-cyan-950/20 border border-cyan-500/30 rounded-lg p-2.5 text-xs text-slate-200">
+                            <div class="font-mono font-bold text-[10px] text-cyan-400 uppercase mb-0.5 flex items-center gap-1">
+                                <i class="fa-solid fa-gauge-high"></i> Why Trail Brake the Car Here:
+                            </div>
+                            <p id="car-physics-desc" class="text-[11px] leading-relaxed text-slate-300">
+                                Trailing 68% brake pins heavy vertical load onto the front axle (killing entry understeer) while unweighting the rear axle so the tail pivots around the nose toward the apex. Unlike a bike, if the front tire slightly exceeds 100% grip, it merely scrubs a few degrees of slip angle rather than crashing.
+                            </p>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+
+
+        <!-- BACKING RESEARCH & CITATIONS -->
+        <section class="bg-motec-panel border border-motec-border rounded-xl p-4 shadow-lg">
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-3 pb-2 border-b border-slate-800">
+                <h3 class="font-mono font-bold text-sm uppercase tracking-wider text-white flex items-center gap-2">
+                    <i class="fa-solid fa-book-open text-purple-400"></i>
+                    Backing Research &amp; Citations
+                </h3>
+                <a href="https://share.gemini.google/d5NY98rO6a03" target="_blank" rel="noopener noreferrer"
+                   class="text-xs text-purple-300 hover:text-purple-200 font-mono">full discussion &#8599;</a>
+            </div>
+
+            <p class="text-xs leading-relaxed text-slate-300 mb-3">
+                A textbook &ldquo;friction circle&rdquo; assumes a vehicle trades 100% longitudinal braking for 100%
+                lateral cornering along a clean circular boundary. Empirical MotoGP/WorldSBK and GT telemetry show
+                adherence envelopes that are anything but circular &mdash; and radically different between two and
+                four wheels. Every trace and readout in this dashboard is mapped to the primary vehicle-dynamics
+                literature and empirical datasets below.
+            </p>
+
+            <div class="grid grid-cols-1 md:grid-cols-5 gap-3 text-xs">
+                <div class="bg-slate-900/90 border border-slate-800 rounded-lg p-3">
+                    <div class="font-mono font-bold text-orange-400 uppercase mb-1">Bike G-G Envelope</div>
+                    <p class="text-slate-400 text-[10px] leading-relaxed">
+                        <strong class="text-slate-200">Cossalter, Lot &amp; Massaro (2011/2014)</strong> &mdash;
+                        <em>An interpretative model of g-g diagrams of racing motorcycles</em>, Proc. IMechE Part D.
+                        <br><br>
+                        Heart/teardrop boundary: upright braking is pitch-limited by rear-wheel lift (stoppie
+                        threshold &asymp; &minus;1.25&nbsp;G street/track, &minus;1.55&nbsp;G with MotoGP aero), and
+                        roll coupling forces braking capacity to decay quasi-linearly toward 55&deg; of lean.
+                    </p>
+                </div>
+
+                <div class="bg-slate-900/90 border border-slate-800 rounded-lg p-3">
+                    <div class="font-mono font-bold text-cyan-400 uppercase mb-1">Car G-G Envelope</div>
+                    <p class="text-slate-400 text-[10px] leading-relaxed">
+                        <strong class="text-slate-200">Milliken &amp; Milliken (1995)</strong> &mdash;
+                        <em>Race Car Vehicle Dynamics</em> (SAE) &amp; <strong class="text-slate-200">Romanowski
+                        (2018)</strong> &mdash; <em>TrailBrake</em> GT3/Formula telemetry.
+                        <br><br>
+                        Mushroom boundary: low h<sub>cg</sub>/L ratio prevents pitch-over, while aerodynamic
+                        downforce (F&thinsp;<span class="font-mono">&prop;</span>&thinsp;v&sup2;) expands the
+                        high-speed braking top of the envelope (&minus;1.6 to &minus;2.0&nbsp;G).
+                    </p>
+                </div>
+
+                <div class="bg-slate-900/90 border border-slate-800 rounded-lg p-3">
+                    <div class="font-mono font-bold text-amber-400 uppercase mb-1">Brake Rise Rate (10&ndash;22%)</div>
+                    <p class="text-slate-400 text-[10px] leading-relaxed">
+                        <strong class="text-slate-200">Code (2010)</strong> &amp;
+                        <strong class="text-slate-200">Nick Ienatsch / ChampSchool (2019)</strong> &mdash;
+                        Brake-pressure transducer telemetry studies.
+                        <br><br>
+                        A bike needs a 0.25&ndash;0.40&nbsp;s progressive ramp so the forks (75&ndash;95&nbsp;mm
+                        travel), rake (&sim;2.2&deg;) and trail (&sim;18&nbsp;mm) can settle before peak pressure.
+                        Cars spike under 0.1&nbsp;s to maximize aero braking.
+                    </p>
+                </div>
+
+                <div class="bg-slate-900/90 border border-slate-800 rounded-lg p-3">
+                    <div class="font-mono font-bold text-purple-400 uppercase mb-1">Combined-Slip Taper (22&ndash;65%)</div>
+                    <p class="text-slate-400 text-[10px] leading-relaxed">
+                        <strong class="text-slate-200">Pacejka (2012)</strong> &mdash;
+                        <em>Tire and Vehicle Dynamics</em>, 3rd Ed., Ch.&nbsp;11 (MF-MCTyre vs MF-Tyre).
+                        <br><br>
+                        Camber thrust (&gamma;&nbsp;&le;&nbsp;55&deg;) with tiny slip angles (&alpha;&nbsp;&lt;&nbsp;3.5&deg;)
+                        on bikes vs. slip-angle (4&ndash;8&deg;) cars. Combined-slip weighting drops steeply on the tire
+                        shoulder: bikes bleed brake at &sim;1.5&ndash;1.8% per degree of lean added.
+                    </p>
+                </div>
+
+                <div class="bg-slate-900/90 border border-slate-800 rounded-lg p-3">
+                    <div class="font-mono font-bold text-emerald-400 uppercase mb-1">Minimum-Lap-Time Trajectory (35&ndash;70%)</div>
+                    <p class="text-slate-400 text-[10px] leading-relaxed">
+                        <strong class="text-slate-200">Massaro &amp; Limebeer (2021)</strong> &mdash;
+                        <em>Minimum-Lap-Time Control of Motorcycles / Vehicles</em>, Vehicle System Dynamics.
+                        <br><br>
+                        Free-trajectory optimal control: bikes shed 80%+ of peak brake before 45&deg; lean to avoid
+                        steering-torque tuck; cars hold 25&ndash;40% deep to the apex to pin the front axle and rotate.
+                    </p>
+                </div>
+            </div>
+
+            <p class="text-[10px] text-slate-500 mt-3 leading-relaxed">
+                Additional insight from Cossalter&rsquo;s follow-up work: peak <em>acceleration</em> on
+                high-power bikes occurs at moderate lean (&sim;15&ndash;25&deg;), not upright &mdash; leaning lowers the
+                effective center of mass and delays the wheelie limit. Contact-tracing of tire-shoulder combined slip
+                is modeled on Pacejka&rsquo;s MF-MCTyre high-camber formulation.
+            </p>
+        </section>
+
+        <!-- BOTTOM FUNDAMENTAL DIFFERENCES SUMMARY MATRIX -->
+        <section class="bg-motec-panel border border-motec-border rounded-xl p-4 shadow-lg">
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-3 pb-2 border-b border-slate-800">
+                <h3 class="font-mono font-bold text-sm uppercase tracking-wider text-white flex items-center gap-2">
+                    <i class="fa-solid fa-scale-balanced text-purple-400"></i>
+                    Core Mechanical & Physics Differences: Motorcycle vs. Car Trail Braking
+                </h3>
+                <span class="text-xs text-slate-400">Why you cannot brake a motorcycle like a car at corner entry</span>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-3 text-xs">
+                <div class="bg-slate-900/90 border border-slate-800 rounded-lg p-3">
+                    <div class="font-mono font-bold text-orange-400 uppercase mb-1 flex items-center justify-between">
+                        <span>1. Initial Brake Application</span>
+                        <i class="fa-solid fa-shoe-prints text-slate-500"></i>
+                    </div>
+                    <p class="text-slate-300 leading-relaxed text-[11px]">
+                        <strong class="text-cyan-400">Car:</strong> Violent initial stomp (0→100% in 0.1s) to utilize aerodynamic downforce at high speed.<br>
+                        <strong class="text-orange-400">Bike:</strong> Progressive squeeze (first 5% loads forks, then ramp to 100%). Grabbing 100% with uncompressed forks locks the lightly-loaded front tire immediately.
+                    </p>
+                </div>
+
+                <div class="bg-slate-900/90 border border-slate-800 rounded-lg p-3">
+                    <div class="font-mono font-bold text-amber-400 uppercase mb-1 flex items-center justify-between">
+                        <span>2. Steering Geometry Change</span>
+                        <i class="fa-solid fa-compass-drafting text-slate-500"></i>
+                    </div>
+                    <p class="text-slate-300 leading-relaxed text-[11px]">
+                        <strong class="text-cyan-400">Car:</strong> Wheelbase is essentially fixed; trail braking shifts vertical weight onto front tires.<br>
+                        <strong class="text-orange-400">Bike:</strong> Compressing telescopic forks physically <strong class="text-white">reduces rake & trail</strong> and shortens wheelbase—turning a stable straight-line missile into a sharp-turning chassis.
+                    </p>
+                </div>
+
+                <div class="bg-slate-900/90 border border-slate-800 rounded-lg p-3">
+                    <div class="font-mono font-bold text-purple-400 uppercase mb-1 flex items-center justify-between">
+                        <span>3. Tire Profile & Camber Thrust</span>
+                        <i class="fa-solid fa-circle-notch text-slate-500"></i>
+                    </div>
+                    <p class="text-slate-300 leading-relaxed text-[11px]">
+                        <strong class="text-cyan-400">Car:</strong> Wide flat tires turn via slip angle across 4 contact patches.<br>
+                        <strong class="text-orange-400">Bike:</strong> Parabolic crown tires turn via <strong class="text-white">camber thrust</strong> at up to 60° lean. At max lean, the bike is on the very edge of the tire where longitudinal braking slows rotation and folds the front.
+                    </p>
+                </div>
+
+                <div class="bg-slate-900/90 border border-slate-800 rounded-lg p-3">
+                    <div class="font-mono font-bold text-emerald-400 uppercase mb-1 flex items-center justify-between">
+                        <span>4. Penalty of Over-Braking</span>
+                        <i class="fa-solid fa-triangle-exclamation text-slate-500"></i>
+                    </div>
+                    <p class="text-slate-300 leading-relaxed text-[11px]">
+                        <strong class="text-cyan-400">Car:</strong> Exceeding 100% traction while trail braking causes mild front understeer scrub or controllable oversteer rotation.<br>
+                        <strong class="text-orange-400">Bike:</strong> Exceeding 100% front traction at 45°+ lean tucked under brake load results in an <strong class="text-red-400">instantaneous lowside crash</strong>.
+                    </p>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- APPLICATION LOGIC & PHYSICS ENGINE -->
+    <script>
+        // ============================================================================
+        // 1. STATE & CONFIGURATION
+        // ============================================================================
+        const state = {
+            progress: 38,          // 0 to 100% of corner
+            playing: false,
+            simSpeed: 0.25,        // % increment per frame at 60fps
+            viewMode: 'both',      // 'both' | 'bike' | 'car'
+            traces: {
+                brake: true,
+                lean: true,
+                throttle: true
+            },
+            isDraggingTrack: false,
+            isDraggingGraph: false
+        };
+
+        // Smooth Hermite interpolation helper
+        function smoothstep(edge0, edge1, x) {
+            const t = Math.max(0, Math.min(1, (x - edge0) / (edge1 - edge0)));
+            return t * t * (3 - 2 * t);
+        }
+
+        function lerp(a, b, t) {
+            return a + (b - a) * Math.max(0, Math.min(1, t));
+        }
+
+        // ============================================================================
+        // 2. CONTINUOUS TELEMETRY & PHYSICS MODEL (0% to 100% Corner Progress)
+        // ============================================================================
+        function getTelemetryAt(p) {
+            // Zones:
+            // 0 - 15%: Straightaway (Full throttle -> Brake prep)
+            // 15 - 32%: Heavy Straight-Line Braking Zone
+            // 32 - 44%: Turn-In & Initial Trail Braking
+            // 44 - 58%: Mid-Corner Deep Trail Braking
+            // 58 - 70%: Apex & Transition (Brake release -> Maintenance throttle)
+            // 70 - 100%: Corner Exit & Drive (Roll on throttle while standing bike up / unwinding wheel)
+
+            // --- MOTORCYCLE TELEMETRY ---
+            // Front Brake %: Progressive ramp 14%->21% (allows fork compression & weight transfer),
+            // Peak 98% from 21%->31%, smooth delicate trail taper 31%->61% (0% at apex 62%)
+            let bikeFrontBrake = 0;
+            if (p >= 14 && p < 21) {
+                bikeFrontBrake = 98 * smoothstep(14, 21, p);
+            } else if (p >= 21 && p < 31) {
+                bikeFrontBrake = 98 - (p - 21) * 0.6; // 98 -> 92%
+            } else if (p >= 31 && p < 62) {
+                // Smooth convex/concave taper off as lean angle increases
+                const t = (p - 31) / (62 - 31);
+                bikeFrontBrake = 92 * Math.pow(1 - t, 1.45);
+            }
+
+            // Rear Brake %: Used initially to settle rear squat (13%->36%) and light trail stability
+            let bikeRearBrake = 0;
+            if (p >= 13 && p < 18) {
+                bikeRearBrake = 32 * smoothstep(13, 18, p);
+            } else if (p >= 18 && p < 42) {
+                bikeRearBrake = 32 * (1 - smoothstep(18, 42, p));
+            }
+
+            // Lean Angle % (0-100% of 60 deg max lean):
+            // Starts tipping in at 29%, builds to 96% (58 deg) at 56-64% (Apex), stands bike up 64-93%
+            let bikeLeanPct = 0;
+            if (p >= 29 && p < 58) {
+                bikeLeanPct = 96 * smoothstep(29, 58, p);
+            } else if (p >= 58 && p < 65) {
+                bikeLeanPct = 96 - (p - 58) * 0.4;
+            } else if (p >= 65 && p < 94) {
+                bikeLeanPct = 93 * (1 - smoothstep(65, 94, p));
+            }
+            const bikeLeanDeg = Math.round((bikeLeanPct / 100) * 60);
+
+            // Bike Throttle %:
+            // 100% from 0->13%, 0% during braking, cracks maintenance throttle at 59%, rolls on inverse to lean 65->96%
+            let bikeThrottle = 0;
+            if (p < 13) {
+                bikeThrottle = 100;
+            } else if (p >= 13 && p < 15) {
+                bikeThrottle = 100 * (1 - smoothstep(13, 15, p));
+            } else if (p >= 59 && p < 68) {
+                bikeThrottle = 18 * smoothstep(59, 68, p); // Maintenance throttle
+            } else if (p >= 68) {
+                bikeThrottle = 18 + 82 * smoothstep(68, 95, p);
+            }
+
+            // Fork Compression %:
+            // Static sag ~25%. Under braking + cornering G load stays compressed 80-92%, extends on exit drive
+            let bikeFork = 25;
+            const brakeLoad = bikeFrontBrake * 0.68;
+            const cornerForkLoad = bikeLeanPct * 0.42;
+            const accelUnweight = (p > 66) ? (bikeThrottle * 0.22) : 0;
+            bikeFork = Math.max(12, Math.min(96, 25 + brakeLoad + cornerForkLoad - accelUnweight));
+
+            // Dynamic Rake & Trail based on fork compression
+            const bikeRake = (24.5 - (bikeFork / 100) * 3.4).toFixed(1);
+            const bikeTrail = Math.round(104 - (bikeFork / 100) * 23);
+            const bikePatch = Math.round(100 + (bikeFork - 25) * 0.55);
+
+            // --- CAR TELEMETRY ---
+            // Car Brake %: Sharp spike at 16% -> 18% (100% peak with aero downforce),
+            // Bleeds slightly as speed drops (aero bleed), carries higher brake into turn-in (32-45%), drops to 0 at 57%
+            let carBrake = 0;
+            if (p >= 15.5 && p < 18) {
+                carBrake = 100 * smoothstep(15.5, 18, p);
+            } else if (p >= 18 && p < 32) {
+                carBrake = 100 - (p - 18) * 0.85; // 100 -> 88% (aero bleed)
+            } else if (p >= 32 && p < 57) {
+                const t = (p - 32) / (57 - 32);
+                carBrake = 88 * Math.pow(1 - t, 1.25);
+            }
+
+            // Car Steering Input %:
+            // Turns in slightly sharper at 31%, peaks around 52-62%, unwinds earlier at 62-88%
+            let carSteerPct = 0;
+            if (p >= 31 && p < 54) {
+                carSteerPct = 92 * smoothstep(31, 54, p);
+            } else if (p >= 54 && p < 62) {
+                carSteerPct = 92;
+            } else if (p >= 62 && p < 89) {
+                carSteerPct = 92 * (1 - smoothstep(62, 89, p));
+            }
+
+            // Car Throttle %:
+            // Holds 100% slightly longer into brake zone (15%), gets back to full throttle earlier on exit (60->86%) because 4 flat tires can put power down faster than a leaned bike
+            let carThrottle = 0;
+            if (p < 14.5) {
+                carThrottle = 100;
+            } else if (p >= 14.5 && p < 16) {
+                carThrottle = 100 * (1 - smoothstep(14.5, 16, p));
+            } else if (p >= 56 && p < 63) {
+                carThrottle = 25 * smoothstep(56, 63, p);
+            } else if (p >= 63) {
+                carThrottle = 25 + 75 * smoothstep(63, 86, p);
+            }
+
+            // Car Front Axle Weight % (Static 50/50)
+            const carFrontLoad = Math.round(Math.max(36, Math.min(76, 50 + carBrake * 0.25 - (p > 60 ? carThrottle * 0.14 : 0))));
+            const carRearLoad = 100 - carFrontLoad;
+            const carYaw = Math.round(Math.min(100, (carSteerPct * 0.65) + (carBrake * 0.45 * (carSteerPct / 100))));
+
+            // Speeds (km/h)
+            const bikeSpeed = Math.round(
+                p < 14 ? 245 + p * 0.5 :
+                p < 58 ? lerp(252, 92, smoothstep(14, 58, p)) :
+                lerp(92, 220, smoothstep(58, 100, p))
+            );
+            const carSpeed = Math.round(
+                p < 15.5 ? 240 + p * 0.4 :
+                p < 56 ? lerp(246, 112, smoothstep(15.5, 56, p)) :
+                lerp(112, 215, smoothstep(56, 100, p))
+            );
+
+            // G-Forces for Friction Circle
+            // Longitudinal G: Negative = Braking, Positive = Acceleration
+            const bikeLongG = (bikeFrontBrake > 0)
+                ? -(bikeFrontBrake / 100) * 1.18
+                : (bikeThrottle / 100) * 0.85 * (p < 15 ? 0.35 : 1);
+            const bikeLatG = (bikeLeanPct / 100) * 1.25;
+            const bikeTotalGripPct = Math.min(100, Math.round(Math.hypot(bikeLongG / 1.22, bikeLatG / 1.28) * 100));
+
+            const carLongG = (carBrake > 0)
+                ? -(carBrake / 100) * 1.55
+                : (carThrottle / 100) * 0.92 * (p < 16 ? 0.35 : 1);
+            const carLatG = (carSteerPct / 100) * 1.65;
+            const carTotalGripPct = Math.min(100, Math.round(Math.hypot(carLongG / 1.60, carLatG / 1.68) * 100));
+
+            // Phase Metadata & Coaching Commentary
+            let phase = {};
+            if (p < 15) {
+                phase = {
+                    idx: 0,
+                    badge: 'PHASE 1 OF 6',
+                    title: '1. Approach Straight (0% – 15%)',
+                    summary: 'Full throttle approach at ~250 km/h. Eyes locked on the braking marker; fingers covering the front brake lever.',
+                    insight: `At <strong class="text-white">${Math.round(p)}% (Approach)</strong>: Both vehicles are at full throttle. The rider prepares for a progressive two-stage brake squeeze, while the driver prepares for an explosive threshold stomp.`,
+                    bikeDesc: 'Forks are extended (25% static sag) and weight is biased rearward from acceleration. If you snap-grab 100% front brake right now before weight transfers forward, the lightly-loaded front tire will lock immediately.',
+                    carDesc: 'Aerodynamic downforce is at maximum at high speed. The driver can transition from gas to maximum hydraulic brake pressure almost instantaneously.'
+                };
+            } else if (p < 32) {
+                phase = {
+                    idx: 1,
+                    badge: 'PHASE 2 OF 6',
+                    title: '2. Straight-Line Threshold Braking (15% – 32%)',
+                    summary: 'Maximum longitudinal deceleration while upright/straight. Using 95–100% of the tire\'s traction budget purely for slowing down.',
+                    insight: `At <strong class="text-white">${Math.round(p)}% (Braking Zone)</strong>: Notice the <strong class="text-orange-400">smooth rounded ramp</strong> on the bike's brake trace (letting the forks compress and flatten the contact patch) vs the <strong class="text-cyan-400">vertical spike</strong> on the car's brake trace.`,
+                    bikeDesc: 'Initial 10% squeeze compresses the forks and squishes the front tire contact patch to 135% normal area. Once weight is on the nose, brake pressure ramps to ~98%. Rear wheel is barely skimming the tarmac (95% Front / 5% Rear bias).',
+                    carDesc: 'Driver hits 100% peak pressure immediately, then slightly bleeds off pressure (100% → 88%) as vehicle speed drops and aerodynamic downforce diminishes, preventing front lockup.'
+                };
+            } else if (p < 44) {
+                phase = {
+                    idx: 2,
+                    badge: 'PHASE 3 OF 6',
+                    title: '3. Turn-In & Trail Braking Initiation (32% – 44%)',
+                    summary: 'The critical crossover: To add lean angle or steering lock, you MUST begin trading away brake pressure ("100 Points of Grip").',
+                    insight: `At <strong class="text-white">${Math.round(p)}% (Turn-In)</strong>: As lean/steering climbs, brake pressure MUST drop. The bike keeps <strong class="text-orange-400">${Math.round(bikeFrontBrake)}% brake</strong> to keep the forks compressed and geometry steep.`,
+                    bikeDesc: `Keeping ${Math.round(bikeFrontBrake)}% front brake keeps the forks compressed (${Math.round(bikeFork)}%), shortening wheelbase and steepening rake to ${bikeRake}°. Releasing the brake completely at turn-in makes the forks rebound ("pogo"), running you wide!`,
+                    carDesc: `Trailing ${Math.round(carBrake)}% brake pins ${carFrontLoad}% of the car's weight onto the front axle so the front tires bite immediately on turn-in, while lightening the rear (${carRearLoad}%) to help the car rotate toward the apex.`
+                };
+            } else if (p < 58) {
+                phase = {
+                    idx: 3,
+                    badge: 'PHASE 4 OF 6',
+                    title: '4. Mid-Corner Deep Trail Zone (44% – 58%)',
+                    summary: 'High lean/steering angle with delicate, tapering brake pressure. This is where races are won and front ends are lost.',
+                    insight: `At <strong class="text-white">${Math.round(p)}% (Deep Trail)</strong>: Bike is leaned at <strong class="text-amber-400">${bikeLeanDeg}°</strong> with just <strong class="text-orange-400">${Math.round(bikeFrontBrake)}%</strong> fingertip brake pressure keeping the nose pinned. Over-braking by 5% here folds the front.`,
+                    bikeDesc: `At ${bikeLeanDeg}° lean, Cornering G consumes ~85% of the front tire's grip budget. You only have ${Math.round(bikeFrontBrake)}% brake pressure left—just enough to control speed and keep the front tire loaded until the bike points where you want to go.`,
+                    carDesc: `With ${Math.round(carBrake)}% brake still trailing, the car exhibits controlled yaw rotation around its front axle. If the driver trails slightly too much brake, the car simply scrubs or slides progressively across 4 flat tires.`
+                };
+            } else if (p < 70) {
+                phase = {
+                    idx: 4,
+                    badge: 'PHASE 5 OF 6',
+                    title: '5. The Apex & Transition (58% – 70%)',
+                    summary: 'Direction change complete! Final 1-2% of brake pressure is smoothly released to 0% at maximum lean, transitioning seamlessly to maintenance throttle.',
+                    insight: `At <strong class="text-white">${Math.round(p)}% (Apex)</strong>: Brake pressure reaches <strong class="text-red-400">0%</strong> right as Lean/Steering hits its <strong class="text-amber-400">100% peak</strong>. Zero coasting gap between releasing final brake and cracking maintenance throttle.`,
+                    bikeDesc: `At maximum lean (${bikeLeanDeg}°), 100% of the tire's traction budget is dedicated to cornering. Final brake pressure melts away smoothly so the forks don't rebound abruptly, and 15% maintenance throttle settles the chassis.`,
+                    carDesc: 'Car hits minimum corner speed slightly earlier (V-shaped or early-rotation apex), allowing the driver to unwind the steering wheel and get back to power sooner than the motorcycle.'
+                };
+            } else {
+                phase = {
+                    idx: 5,
+                    badge: 'PHASE 6 OF 6',
+                    title: '6. Corner Exit & Drive Roll-On (70% – 100%)',
+                    summary: 'The reverse friction circle: As you take away lean angle (stand the bike up) or unwind steering lock, you add throttle.',
+                    insight: `At <strong class="text-white">${Math.round(p)}% (Exit Drive)</strong>: The car reaches 100% throttle by 86% corner progress, while the bike must wait until Lean Angle drops (<strong class="text-amber-400">${bikeLeanDeg}°</strong>) to avoid a rear-wheel highside.`,
+                    bikeDesc: `Standing the bike up over the fat part of the rear tire while rolling on ${Math.round(bikeThrottle)}% throttle. You cannot apply 100% throttle at 50° lean on the thin edge of a motorcycle tire without spinning up the rear.`,
+                    carDesc: `With 4 wide flat contact patches and rear weight transfer (${carRearLoad}% rear load), the driver unwinds steering lock and plants ${Math.round(carThrottle)}% throttle early out of the corner.`
+                };
+            }
+
+            return {
+                p,
+                bikeFrontBrake,
+                bikeRearBrake,
+                bikeLeanPct,
+                bikeLeanDeg,
+                bikeThrottle,
+                bikeFork,
+                bikeRake,
+                bikeTrail,
+                bikePatch,
+                bikeSpeed,
+                bikeLongG,
+                bikeLatG,
+                bikeTotalGripPct,
+                carBrake,
+                carSteerPct,
+                carThrottle,
+                carFrontLoad,
+                carRearLoad,
+                carYaw,
+                carSpeed,
+                carLongG,
+                carLatG,
+                carTotalGripPct,
+                phase
+            };
+        }
+
+        // Precompute full 0..100 telemetry array for fast graph rendering
+        const telemetrySeries = [];
+        for (let i = 0; i <= 200; i++) {
+            const pct = i * 0.5;
+            telemetrySeries.push(getTelemetryAt(pct));
+        }
+
+        // ============================================================================
+        // 3. TOP-DOWN TRACK GEOMETRY & RACING LINE GENERATOR
+        // ============================================================================
+        // Normalized coordinate space (0..1000 x 0..750)
+        // Entry bottom-left vertical straight -> 90+ degree right-hand corner -> Exit top-right straight
+        function getTrackPoint(progressPct, vehicleType = 'center') {
+            const t = progressPct / 100;
+
+            // Define Cubic Bezier segments for Centerline, Bike Line (wider entry, later apex), Car Line (tighter early rotation)
+            // Control points for smooth cornering paths
+            let pts;
+            if (vehicleType === 'bike') {
+                // Bike hugs outside left kerb on entry, turns in slightly smoother, hits apex around 62%, drifts out to outer exit kerb
+                pts = [
+                    { x: 155, y: 710 }, // 0%
+                    { x: 155, y: 410 }, // 25%
+                    { x: 155, y: 185 }, // 50% (wide entry arc)
+                    { x: 430, y: 270 }, // 63% (Apex)
+                    { x: 640, y: 125 }, // 80%
+                    { x: 940, y: 125 }  // 100%
+                ];
+            } else if (vehicleType === 'car') {
+                // Car brakes deeper in a straight line, rotates sharper into an earlier apex (~57%), gets straight earlier on exit
+                pts = [
+                    { x: 185, y: 710 },
+                    { x: 185, y: 390 },
+                    { x: 195, y: 215 },
+                    { x: 410, y: 295 }, // Tighter inside apex
+                    { x: 650, y: 155 },
+                    { x: 940, y: 145 }
+                ];
+            } else {
+                // Track Centerline
+                pts = [
+                    { x: 240, y: 710 },
+                    { x: 240, y: 430 },
+                    { x: 240, y: 210 },
+                    { x: 380, y: 210 },
+                    { x: 620, y: 210 },
+                    { x: 940, y: 210 }
+                ];
+            }
+
+            // Piecewise Catmull-Rom / Bezier spline evaluation for smooth path + tangent angle
+            return evaluateSmoothPath(pts, t);
+        }
+
+        function evaluateSmoothPath(points, t) {
+            // Use a single 2-segment cubic bezier for guaranteed C1 continuity
+            // Segment 1 (t: 0 -> 0.62): Entry straight through Braking + Turn-in to Apex
+            // Segment 2 (t: 0.62 -> 1.0): Apex to Exit straight
+            let p0, p1, p2, p3, localT;
+            if (points[0].x === 155) {
+                // Bike Racing Line
+                if (t <= 0.62) {
+                    localT = t / 0.62;
+                    p0 = { x: 155, y: 700 };
+                    p1 = { x: 155, y: 360 };
+                    p2 = { x: 160, y: 210 };
+                    p3 = { x: 355, y: 245 }; // Bike Apex
+                } else {
+                    localT = (t - 0.62) / 0.38;
+                    p0 = { x: 355, y: 245 };
+                    p1 = { x: 495, y: 270 };
+                    p2 = { x: 630, y: 130 };
+                    p3 = { x: 935, y: 130 };
+                }
+            } else if (points[0].x === 185) {
+                // Car Racing Line
+                if (t <= 0.58) {
+                    localT = t / 0.58;
+                    p0 = { x: 185, y: 700 };
+                    p1 = { x: 185, y: 340 };
+                    p2 = { x: 195, y: 245 };
+                    p3 = { x: 345, y: 270 }; // Car Apex
+                } else {
+                    localT = (t - 0.58) / 0.42;
+                    p0 = { x: 345, y: 270 };
+                    p1 = { x: 470, y: 290 };
+                    p2 = { x: 620, y: 155 };
+                    p3 = { x: 935, y: 155 };
+                }
+            } else {
+                // Track Asphalt Centerline (for drawing tarmac borders & kerbs)
+                if (t <= 0.55) {
+                    localT = t / 0.55;
+                    p0 = { x: 235, y: 710 };
+                    p1 = { x: 235, y: 420 };
+                    p2 = { x: 235, y: 215 };
+                    p3 = { x: 375, y: 215 };
+                } else {
+                    localT = (t - 0.55) / 0.45;
+                    p0 = { x: 375, y: 215 };
+                    p1 = { x: 515, y: 215 };
+                    p2 = { x: 690, y: 215 };
+                    p3 = { x: 945, y: 215 };
+                }
+            }
+
+            const u = 1 - localT;
+            const tt = localT * localT;
+            const uu = u * u;
+            const uuu = uu * u;
+            const ttt = tt * localT;
+
+            const x = uuu * p0.x + 3 * uu * localT * p1.x + 3 * u * tt * p2.x + ttt * p3.x;
+            const y = uuu * p0.y + 3 * uu * localT * p1.y + 3 * u * tt * p2.y + ttt * p3.y;
+
+            // Derivative for tangent heading
+            const dx = 3 * uu * (p1.x - p0.x) + 6 * u * localT * (p2.x - p1.x) + 3 * tt * (p3.x - p2.x);
+            const dy = 3 * uu * (p1.y - p0.y) + 6 * u * localT * (p2.y - p1.y) + 3 * tt * (p3.y - p2.y);
+            const angle = Math.atan2(dy, dx);
+
+            return { x, y, angle };
+        }
+
+        // ============================================================================
+        // 4. CANVAS RENDERERS
+        // ============================================================================
+
+        // --- A. TOP-DOWN TRACK MAP RENDERER ---
+        function drawTrackMap() {
+            const canvas = document.getElementById('trackCanvas');
+            if (!canvas) return;
+            const rect = canvas.parentElement.getBoundingClientRect();
+            const dpr = window.devicePixelRatio || 1;
+            canvas.width = rect.width * dpr;
+            canvas.height = rect.height * dpr;
+
+            const ctx = canvas.getContext('2d');
+            ctx.save();
+            // Scale from virtual 1000x750 to actual canvas dimensions
+            const scaleX = canvas.width / 1000;
+            const scaleY = canvas.height / 750;
+            ctx.scale(scaleX, scaleY);
+
+            // 1. Background Grass / Runoff Grid
+            ctx.fillStyle = '#070a10';
+            ctx.fillRect(0, 0, 1000, 750);
+
+            ctx.strokeStyle = '#111827';
+            ctx.lineWidth = 1.5;
+            for (let gx = 0; gx < 1000; gx += 50) {
+                ctx.beginPath(); ctx.moveTo(gx, 0); ctx.lineTo(gx, 750); ctx.stroke();
+            }
+            for (let gy = 0; gy < 750; gy += 50) {
+                ctx.beginPath(); ctx.moveTo(0, gy); ctx.lineTo(1000, gy); ctx.stroke();
+            }
+
+            // 2. Draw Tarmac Track Surface
+            ctx.lineCap = 'butt';
+            ctx.lineJoin = 'round';
+
+            // Outer White Track Border
+            ctx.beginPath();
+            for (let i = 0; i <= 100; i++) {
+                const pt = getTrackPoint(i, 'center');
+                if (i === 0) ctx.moveTo(pt.x, pt.y);
+                else ctx.lineTo(pt.x, pt.y);
+            }
+            ctx.strokeStyle = '#334155';
+            ctx.lineWidth = 228;
+            ctx.stroke();
+
+            // Inner Asphalt Surface
+            ctx.strokeStyle = '#161e2e';
+            ctx.lineWidth = 220;
+            ctx.stroke();
+
+            // 3. Draw Kerbs (Entry Outside Left Kerb, Inside Apex Kerb, Exit Outside Left Kerb)
+            // Entry Outside Kerb (12% to 38%)
+            drawKerbStrip(ctx, 12, 38, -110, 14);
+            // Inside Apex Kerb (46% to 68%)
+            drawKerbStrip(ctx, 46, 68, 110, 16);
+            // Exit Outside Kerb (68% to 95%)
+            drawKerbStrip(ctx, 68, 95, -110, 14);
+
+            // 4. Braking Marker Boards on Left Entry (150m, 100m, 50m)
+            const markers = [
+                { p: 15, label: '150m (BRAKE)' },
+                { p: 24, label: '100m' },
+                { p: 32, label: '50m (TURN-IN)' }
+            ];
+            markers.forEach(m => {
+                const pt = getTrackPoint(m.p, 'center');
+                ctx.fillStyle = '#0f172a';
+                ctx.strokeStyle = '#475569';
+                ctx.lineWidth = 2;
+                ctx.fillRect(pt.x - 195, pt.y - 11, 72, 22);
+                ctx.strokeRect(pt.x - 195, pt.y - 11, 72, 22);
+                ctx.fillStyle = '#94a3b8';
+                ctx.font = 'bold 11px "JetBrains Mono", monospace';
+                ctx.textAlign = 'center';
+                ctx.fillText(m.label.split(' ')[0], pt.x - 159, pt.y + 4);
+            });
+
+            // 5. Draw Car Racing Line (Cyan Dashed)
+            if (state.viewMode === 'both' || state.viewMode === 'car') {
+                ctx.beginPath();
+                for (let i = 0; i <= 100; i++) {
+                    const pt = getTrackPoint(i, 'car');
+                    if (i === 0) ctx.moveTo(pt.x, pt.y);
+                    else ctx.lineTo(pt.x, pt.y);
+                }
+                ctx.strokeStyle = 'rgba(6, 182, 212, 0.55)';
+                ctx.lineWidth = 4;
+                ctx.setLineDash([10, 8]);
+                ctx.stroke();
+                ctx.setLineDash([]);
+            }
+
+            // 6. Draw Bike Racing Line (Color-coded by Brake/Trail/Throttle or Neon Orange)
+            if (state.viewMode === 'both' || state.viewMode === 'bike') {
+                for (let i = 0; i < 100; i++) {
+                    const p1 = getTrackPoint(i, 'bike');
+                    const p2 = getTrackPoint(i + 1, 'bike');
+                    const d = getTelemetryAt(i);
+
+                    ctx.beginPath();
+                    ctx.moveTo(p1.x, p1.y);
+                    ctx.lineTo(p2.x, p2.y);
+
+                    // Color code the bike line according to braking vs trail vs throttle
+                    if (d.bikeFrontBrake > 65) {
+                        ctx.strokeStyle = '#ef4444'; // Heavy Brake Red
+                    } else if (d.bikeFrontBrake > 5) {
+                        ctx.strokeStyle = '#f97316'; // Trail Brake Orange
+                    } else if (d.bikeThrottle > 20 && i > 50) {
+                        ctx.strokeStyle = '#10b981'; // Exit Drive Green
+                    } else {
+                        ctx.strokeStyle = '#eab308'; // Apex Yellow
+                    }
+                    ctx.lineWidth = 6;
+                    ctx.stroke();
+                }
+            }
+
+            // 7. Interactive Waypoint Nodes along the Corner
+            const keyNodes = [
+                { p: 15, label: 'Brake Marker' },
+                { p: 32, label: 'Turn-In' },
+                { p: 48, label: 'Trail Zone' },
+                { p: 62, label: 'Apex (0% Brake)' },
+                { p: 82, label: 'Exit Drive' }
+            ];
+            keyNodes.forEach(node => {
+                const pt = getTrackPoint(node.p, 'bike');
+                ctx.beginPath();
+                ctx.arc(pt.x, pt.y, 7, 0, Math.PI * 2);
+                ctx.fillStyle = Math.abs(state.progress - node.p) < 4 ? '#ffffff' : '#1e293b';
+                ctx.fill();
+                ctx.lineWidth = 2.5;
+                ctx.strokeStyle = '#f8fafc';
+                ctx.stroke();
+            });
+
+            // 8. Draw Active Vehicles & Dynamic Force Vectors at Current Progress
+            const curData = getTelemetryAt(state.progress);
+
+            if (state.viewMode === 'both' || state.viewMode === 'car') {
+                const carPos = getTrackPoint(state.progress, 'car');
+                drawVehicleWithVectors(ctx, carPos, curData, 'car');
+            }
+
+            if (state.viewMode === 'both' || state.viewMode === 'bike') {
+                const bikePos = getTrackPoint(state.progress, 'bike');
+                drawVehicleWithVectors(ctx, bikePos, curData, 'bike');
+            }
+
+            ctx.restore();
+        }
+
+        function drawKerbStrip(ctx, startPct, endPct, offsetDist, width) {
+            const steps = 22;
+            for (let i = 0; i < steps; i++) {
+                const pA = startPct + ((endPct - startPct) * (i / steps));
+                const pB = startPct + ((endPct - startPct) * ((i + 1) / steps));
+                const ptA = getTrackPoint(pA, 'center');
+                const ptB = getTrackPoint(pB, 'center');
+
+                const nxA = -Math.sin(ptA.angle) * offsetDist;
+                const nyA = Math.cos(ptA.angle) * offsetDist;
+                const nxB = -Math.sin(ptB.angle) * offsetDist;
+                const nyB = Math.cos(ptB.angle) * offsetDist;
+
+                ctx.beginPath();
+                ctx.moveTo(ptA.x + nxA, ptA.y + nyA);
+                ctx.lineTo(ptB.x + nxB, ptB.y + nyB);
+                ctx.strokeStyle = (i % 2 === 0) ? '#ef4444' : '#f8fafc';
+                ctx.lineWidth = width;
+                ctx.stroke();
+            }
+        }
+
+        function drawVehicleWithVectors(ctx, pos, data, type) {
+            ctx.save();
+            ctx.translate(pos.x, pos.y);
+            ctx.rotate(pos.angle);
+
+            const isBike = type === 'bike';
+            const brakePct = isBike ? data.bikeFrontBrake : data.carBrake;
+            const latPct = isBike ? data.bikeLeanPct : data.carSteerPct;
+            const throttlePct = isBike ? data.bikeThrottle : data.carThrottle;
+
+            // --- FORCE VECTORS ---
+            // 1. Braking Vector (Points backwards against velocity: -X in local vehicle coords)
+            if (brakePct > 2) {
+                const len = 25 + (brakePct * 0.95);
+                drawArrow(ctx, 0, 0, -len, 0, '#ef4444', 4);
+            }
+
+            // 2. Drive / Acceleration Vector (Points forward: +X)
+            if (throttlePct > 5 && brakePct < 2) {
+                const len = 20 + (throttlePct * 0.75);
+                drawArrow(ctx, 0, 0, len, 0, '#10b981', 3.5);
+            }
+
+            // 3. Cornering / Lateral Centripetal Vector (Points toward inside of turn: +Y in screen right-hander)
+            if (latPct > 3) {
+                const len = 20 + (latPct * 0.95);
+                drawArrow(ctx, 0, 0, 0, len, '#eab308', 4);
+            }
+
+            // --- VEHICLE BODY ---
+            if (isBike) {
+                // Glow halo
+                ctx.beginPath();
+                ctx.arc(0, 0, 22, 0, Math.PI * 2);
+                ctx.fillStyle = 'rgba(249, 115, 22, 0.22)';
+                ctx.fill();
+
+                // Tires
+                ctx.fillStyle = '#0f172a';
+                ctx.strokeStyle = '#cbd5e1';
+                ctx.lineWidth = 2;
+                ctx.beginPath();
+                ctx.roundRect(-22, -4, 14, 8, 3);
+                ctx.roundRect(8, -4, 14, 8, 3);
+                ctx.fill();
+                ctx.stroke();
+
+                // Chassis & Rider
+                ctx.fillStyle = '#f97316';
+                ctx.beginPath();
+                ctx.roundRect(-14, -7, 28, 14, 6);
+                ctx.fill();
+
+                // Rider Helmet (offsets toward inside of corner +Y as lean angle increases)
+                const leanOffset = (data.bikeLeanPct / 100) * 9;
+                ctx.beginPath();
+                ctx.arc(-2, leanOffset, 6.5, 0, Math.PI * 2);
+                ctx.fillStyle = '#ffffff';
+                ctx.fill();
+                ctx.strokeStyle = '#0f172a';
+                ctx.lineWidth = 2;
+                ctx.stroke();
+            } else {
+                // Car Body
+                ctx.fillStyle = 'rgba(6, 182, 212, 0.18)';
+                ctx.beginPath();
+                ctx.arc(0, 0, 26, 0, Math.PI * 2);
+                ctx.fill();
+
+                // 4 Tires
+                ctx.fillStyle = '#020617';
+                ctx.fillRect(-18, -15, 10, 5);
+                ctx.fillRect(-18, 10, 10, 5);
+                ctx.fillRect(8, -15, 10, 5);
+                ctx.fillRect(8, 10, 10, 5);
+
+                // Car Chassis
+                ctx.fillStyle = '#06b6d4';
+                ctx.strokeStyle = '#ecfeff';
+                ctx.lineWidth = 1.5;
+                ctx.beginPath();
+                ctx.roundRect(-22, -11, 44, 22, 6);
+                ctx.fill();
+                ctx.stroke();
+
+                // Cockpit
+                ctx.fillStyle = '#0f172a';
+                ctx.beginPath();
+                ctx.roundRect(-8, -7, 16, 14, 3);
+                ctx.fill();
+            }
+
+            ctx.restore();
+        }
+
+        function drawArrow(ctx, x1, y1, x2, y2, color, width) {
+            const headLen = 10;
+            const angle = Math.atan2(y2 - y1, x2 - x1);
+            ctx.save();
+            ctx.strokeStyle = color;
+            ctx.fillStyle = color;
+            ctx.lineWidth = width;
+            ctx.lineCap = 'round';
+
+            ctx.beginPath();
+            ctx.moveTo(x1, y1);
+            ctx.lineTo(x2, y2);
+            ctx.stroke();
+
+            ctx.beginPath();
+            ctx.moveTo(x2, y2);
+            ctx.lineTo(x2 - headLen * Math.cos(angle - Math.PI / 6), y2 - headLen * Math.sin(angle - Math.PI / 6));
+            ctx.lineTo(x2 - headLen * Math.cos(angle + Math.PI / 6), y2 - headLen * Math.sin(angle + Math.PI / 6));
+            ctx.closePath();
+            ctx.fill();
+            ctx.restore();
+        }
+
+        // --- B. TELEMETRY GRAPHS RENDERER ---
+        function drawTelemetryGraph() {
+            const canvas = document.getElementById('telemetryCanvas');
+            if (!canvas) return;
+            const rect = canvas.parentElement.getBoundingClientRect();
+            const dpr = window.devicePixelRatio || 1;
+            canvas.width = rect.width * dpr;
+            canvas.height = rect.height * dpr;
+
+            const ctx = canvas.getContext('2d');
+            ctx.save();
+            ctx.scale(dpr, dpr);
+
+            const W = rect.width;
+            const H = rect.height;
+            const pad = { top: 28, right: 20, bottom: 32, left: 42 };
+            const plotW = W - pad.left - pad.right;
+            const plotH = H - pad.top - pad.bottom;
+
+            // 1. Background & Phase Shading Bands
+            ctx.fillStyle = '#070a10';
+            ctx.fillRect(0, 0, W, H);
+
+            const zones = [
+                { s: 0, e: 15, name: 'STRAIGHT', color: 'rgba(239, 68, 68, 0.04)' },
+                { s: 15, e: 32, name: 'BRAKE ZONE', color: 'rgba(249, 115, 22, 0.08)' },
+                { s: 32, e: 44, name: 'TURN-IN', color: 'rgba(234, 179, 8, 0.06)' },
+                { s: 44, e: 58, name: 'TRAIL BRAKE', color: 'rgba(250, 204, 21, 0.10)' },
+                { s: 58, e: 70, name: 'APEX', color: 'rgba(168, 85, 247, 0.08)' },
+                { s: 70, e: 100, name: 'EXIT DRIVE', color: 'rgba(16, 185, 129, 0.05)' }
+            ];
+
+            zones.forEach(z => {
+                const x1 = pad.left + (z.s / 100) * plotW;
+                const x2 = pad.left + (z.e / 100) * plotW;
+                ctx.fillStyle = z.color;
+                ctx.fillRect(x1, pad.top, x2 - x1, plotH);
+
+                // Zone Divider Line
+                ctx.strokeStyle = '#1e293b';
+                ctx.lineWidth = 1;
+                ctx.beginPath();
+                ctx.moveTo(x1, pad.top);
+                ctx.lineTo(x1, pad.top + plotH);
+                ctx.stroke();
+
+                // Zone Top Label
+                ctx.fillStyle = '#64748b';
+                ctx.font = 'bold 9px "JetBrains Mono", monospace';
+                ctx.textAlign = 'center';
+                if (x2 - x1 > 42) {
+                    ctx.fillText(z.name, (x1 + x2) / 2, pad.top - 9);
+                }
+            });
+
+            // 2. Horizontal Y-Axis Grid Lines (0% to 100%)
+            ctx.font = '10px "JetBrains Mono", monospace';
+            ctx.textAlign = 'right';
+            for (let yPct = 0; yPct <= 100; yPct += 25) {
+                const y = pad.top + plotH - (yPct / 100) * plotH;
+                ctx.strokeStyle = yPct === 0 || yPct === 100 ? '#334155' : '#162032';
+                ctx.lineWidth = 1;
+                ctx.beginPath();
+                ctx.moveTo(pad.left, y);
+                ctx.lineTo(pad.left + plotW, y);
+                ctx.stroke();
+
+                ctx.fillStyle = '#64748b';
+                ctx.fillText(yPct + '%', pad.left - 6, y + 3);
+            }
+
+            // X-Axis Labels
+            ctx.textAlign = 'center';
+            for (let xPct = 0; xPct <= 100; xPct += 10) {
+                const x = pad.left + (xPct / 100) * plotW;
+                ctx.fillStyle = '#64748b';
+                ctx.fillText(xPct + '%', x, pad.top + plotH + 18);
+            }
+
+            const showBike = state.viewMode === 'both' || state.viewMode === 'bike';
+            const showCar = state.viewMode === 'both' || state.viewMode === 'car';
+
+            // Helper to plot a telemetry curve
+            function plotCurve(accessor, color, lineWidth, dashed = false, fillAlpha = 0) {
+                ctx.save();
+                ctx.beginPath();
+                telemetrySeries.forEach((pt, idx) => {
+                    const x = pad.left + (pt.p / 100) * plotW;
+                    const y = pad.top + plotH - (accessor(pt) / 100) * plotH;
+                    if (idx === 0) ctx.moveTo(x, y);
+                    else ctx.lineTo(x, y);
+                });
+                ctx.strokeStyle = color;
+                ctx.lineWidth = lineWidth;
+                if (dashed) ctx.setLineDash([6, 4]);
+                ctx.stroke();
+
+                if (fillAlpha > 0) {
+                    ctx.lineTo(pad.left + plotW, pad.top + plotH);
+                    ctx.lineTo(pad.left, pad.top + plotH);
+                    ctx.closePath();
+                    ctx.fillStyle = color.replace(')', `, ${fillAlpha})`).replace('rgb', 'rgba');
+                    ctx.fill();
+                }
+                ctx.restore();
+            }
+
+            // 3. Draw Curves
+            // Throttle Curves (Emerald)
+            if (state.traces.throttle) {
+                if (showCar) plotCurve(d => d.carThrottle, 'rgb(16, 185, 129)', 1.8, true);
+                if (showBike) plotCurve(d => d.bikeThrottle, 'rgb(16, 185, 129)', 2.5, false, 0.07);
+            }
+
+            // Lean / Steer Curves (Amber/Yellow)
+            if (state.traces.lean) {
+                if (showCar) plotCurve(d => d.carSteerPct, 'rgb(250, 204, 21)', 1.8, true);
+                if (showBike) plotCurve(d => d.bikeLeanPct, 'rgb(245, 158, 11)', 2.5, false, 0.08);
+            }
+
+            // Brake Pressure Curves (Bike = Neon Orange/Red Solid, Car = Cyan Dashed)
+            if (state.traces.brake) {
+                if (showCar) plotCurve(d => d.carBrake, 'rgb(6, 182, 212)', 2.4, true, 0.06);
+                if (showBike) plotCurve(d => d.bikeFrontBrake, 'rgb(249, 115, 22)', 3.2, false, 0.16);
+            }
+
+            // 4. Draw Synchronized Vertical Scrubber Cursor Line
+            const curX = pad.left + (state.progress / 100) * plotW;
+            ctx.strokeStyle = '#ffffff';
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            ctx.moveTo(curX, pad.top);
+            ctx.lineTo(curX, pad.top + plotH);
+            ctx.stroke();
+
+            // Draw Active Data Dots on Cursor Line
+            const curData = getTelemetryAt(state.progress);
+            const dots = [];
+            if (state.traces.brake && showBike) dots.push({ val: curData.bikeFrontBrake, color: '#f97316', label: `Bike Brake: ${Math.round(curData.bikeFrontBrake)}%` });
+            if (state.traces.brake && showCar) dots.push({ val: curData.carBrake, color: '#06b6d4', label: `Car Brake: ${Math.round(curData.carBrake)}%` });
+            if (state.traces.lean && showBike) dots.push({ val: curData.bikeLeanPct, color: '#f59e0b', label: `Bike Lean: ${curData.bikeLeanDeg}°` });
+            if (state.traces.throttle && showBike) dots.push({ val: curData.bikeThrottle, color: '#10b981', label: `Throttle: ${Math.round(curData.bikeThrottle)}%` });
+
+            dots.forEach(dot => {
+                const y = pad.top + plotH - (dot.val / 100) * plotH;
+                ctx.beginPath();
+                ctx.arc(curX, y, 5, 0, Math.PI * 2);
+                ctx.fillStyle = dot.color;
+                ctx.fill();
+                ctx.lineWidth = 2;
+                ctx.strokeStyle = '#070a10';
+                ctx.stroke();
+            });
+
+            // Floating Cursor Readout Box inside Graph
+            const boxW = 148;
+            const boxH = 66;
+            const boxX = (curX + boxW + 15 < pad.left + plotW) ? curX + 10 : curX - boxW - 10;
+            const boxY = pad.top + 10;
+
+            ctx.fillStyle = 'rgba(15, 23, 42, 0.92)';
+            ctx.strokeStyle = '#334155';
+            ctx.lineWidth = 1;
+            ctx.beginPath();
+            ctx.roundRect(boxX, boxY, boxW, boxH, 6);
+            ctx.fill();
+            ctx.stroke();
+
+            ctx.font = 'bold 10px "JetBrains Mono", monospace';
+            ctx.textAlign = 'left';
+            ctx.fillStyle = '#f8fafc';
+            ctx.fillText(`POS: ${Math.round(state.progress)}% CORNER`, boxX + 8, boxY + 15);
+            ctx.fillStyle = '#f97316';
+            ctx.fillText(`BIKE BRAKE: ${Math.round(curData.bikeFrontBrake)}%`, boxX + 8, boxY + 31);
+            ctx.fillStyle = '#06b6d4';
+            ctx.fillText(`CAR BRAKE:  ${Math.round(curData.carBrake)}%`, boxX + 8, boxY + 45);
+            ctx.fillStyle = '#f59e0b';
+            ctx.fillText(`BIKE LEAN:  ${curData.bikeLeanDeg}° (${Math.round(curData.bikeLeanPct)}%)`, boxX + 8, boxY + 59);
+
+            ctx.restore();
+        }
+
+        // --- C. 2D FRICTION CIRCLE (G-G DIAGRAM) RENDERER ---
+        function drawFrictionCircle() {
+            const canvas = document.getElementById('frictionCanvas');
+            if (!canvas) return;
+            const rect = canvas.parentElement.getBoundingClientRect();
+            const dpr = window.devicePixelRatio || 1;
+            canvas.width = rect.width * dpr;
+            canvas.height = rect.height * dpr;
+
+            const ctx = canvas.getContext('2d');
+            ctx.save();
+            ctx.scale(dpr, dpr);
+
+            const W = rect.width;
+            const H = rect.height;
+            const cx = W / 2;
+            const cy = H / 2;
+            const maxR = Math.min(W, H) * 0.40;
+
+            // Clear
+            ctx.fillStyle = '#070a10';
+            ctx.fillRect(0, 0, W, H);
+
+            // Concentric G Rings (50%, 100% Car Limit)
+            ctx.strokeStyle = '#1e293b';
+            ctx.lineWidth = 1;
+            [0.33, 0.66, 1.0].forEach(r => {
+                ctx.beginPath();
+                ctx.arc(cx, cy, maxR * r, 0, Math.PI * 2);
+                ctx.stroke();
+            });
+
+            // Crosshair Axes
+            ctx.beginPath();
+            ctx.moveTo(cx - maxR * 1.15, cy);
+            ctx.lineTo(cx + maxR * 1.15, cy);
+            ctx.moveTo(cx, cy - maxR * 1.15);
+            ctx.lineTo(cx, cy + maxR * 1.15);
+            ctx.strokeStyle = '#334155';
+            ctx.stroke();
+
+            // Axis Labels
+            ctx.font = 'bold 9px "JetBrains Mono", monospace';
+            ctx.fillStyle = '#94a3b8';
+            ctx.textAlign = 'center';
+            ctx.fillText('BRAKING (-G)', cx, cy + maxR * 1.13);
+            ctx.fillText('DRIVE (+G)', cx, cy - maxR * 1.06);
+            ctx.fillText('CORNERING G →', cx + maxR * 0.62, cy - 5);
+
+            const cur = getTelemetryAt(state.progress);
+
+            // Car Outer Traction Limit Circle (Cyan Dashed)
+            if (state.viewMode === 'both' || state.viewMode === 'car') {
+                ctx.save();
+                ctx.beginPath();
+                ctx.arc(cx, cy, maxR, 0, Math.PI * 2);
+                ctx.strokeStyle = 'rgba(6, 182, 212, 0.55)';
+                ctx.lineWidth = 2;
+                ctx.setLineDash([5, 4]);
+                ctx.stroke();
+                ctx.restore();
+            }
+
+            // Bike Dynamic Traction Envelope (Orange Circle — expands slightly when forks/contact patch are loaded)
+            if (state.viewMode === 'both' || state.viewMode === 'bike') {
+                const patchFactor = 0.76 + ((cur.bikePatch - 100) / 100) * 0.18;
+                const bikeR = maxR * patchFactor;
+                ctx.beginPath();
+                ctx.arc(cx, cy, bikeR, 0, Math.PI * 2);
+                ctx.strokeStyle = 'rgba(249, 115, 22, 0.85)';
+                ctx.fillStyle = 'rgba(249, 115, 22, 0.06)';
+                ctx.lineWidth = 2;
+                ctx.fill();
+                ctx.stroke();
+            }
+
+            // Map G-forces to Canvas coords:
+            // X = Lateral Cornering G (0 to 1.68G), Y = Braking (+Y downward) vs Acceleration (-Y upward)
+            if (state.viewMode === 'both' || state.viewMode === 'car') {
+                const carX = cx + (cur.carLatG / 1.68) * maxR;
+                const carY = cy - (cur.carLongG / 1.60) * maxR; // Negative longG (braking) goes DOWN (+Y)
+                drawArrow(ctx, cx, cy, carX, carY, '#06b6d4', 3);
+                ctx.beginPath();
+                ctx.arc(carX, carY, 5, 0, Math.PI * 2);
+                ctx.fillStyle = '#67e8f9';
+                ctx.fill();
+            }
+
+            if (state.viewMode === 'both' || state.viewMode === 'bike') {
+                const bikeX = cx + (cur.bikeLatG / 1.60) * maxR;
+                const bikeY = cy - (cur.bikeLongG / 1.55) * maxR;
+                drawArrow(ctx, cx, cy, bikeX, bikeY, '#f97316', 3.5);
+                ctx.beginPath();
+                ctx.arc(bikeX, bikeY, 5.5, 0, Math.PI * 2);
+                ctx.fillStyle = '#fdba74';
+                ctx.fill();
+            }
+
+            ctx.restore();
+        }
+
+        // ============================================================================
+        // 5. DOM READOUT UPDATER
+        // ============================================================================
+        function updateDashboardUI() {
+            const d = getTelemetryAt(state.progress);
+            const pctStr = Math.round(state.progress) + '%';
+
+            // Header & Slider
+            document.getElementById('progress-readout').textContent = pctStr;
+            document.getElementById('corner-slider').value = state.progress;
+            document.querySelectorAll('.pos-pct').forEach(el => el.textContent = pctStr);
+
+            // Highlight active Phase Pill
+            for (let i = 0; i < 6; i++) {
+                const btn = document.getElementById(`phase-btn-${i}`);
+                if (i === d.phase.idx) {
+                    btn.className = 'py-1 px-1.5 rounded bg-slate-800 border border-amber-400/70 text-white font-bold truncate text-left transition shadow';
+                } else {
+                    btn.className = 'py-1 px-1.5 rounded bg-slate-900 hover:bg-slate-800 border border-slate-800 text-slate-400 truncate text-left transition';
+                }
+            }
+
+            // Map Floating Badge & Quick Pills
+            document.getElementById('map-zone-title').textContent = d.phase.title;
+            document.getElementById('quick-bike-brake').textContent = Math.round(d.bikeFrontBrake) + '%';
+            document.getElementById('quick-bike-lean').textContent = d.bikeLeanDeg + '°';
+            document.getElementById('quick-bike-speed').innerHTML = `${d.bikeSpeed} <span class="text-[10px] font-normal text-slate-400">km/h</span>`;
+
+            document.getElementById('quick-car-brake').textContent = Math.round(d.carBrake) + '%';
+            document.getElementById('quick-car-steer').textContent = Math.round(d.carSteerPct) + '%';
+            document.getElementById('quick-car-speed').innerHTML = `${d.carSpeed} <span class="text-[10px] font-normal text-slate-400">km/h</span>`;
+
+            // Telemetry Graph Insight
+            document.getElementById('telemetry-insight-text').innerHTML = d.phase.insight;
+
+            // Friction Circle Cards
+            document.getElementById('bike-grip-total').textContent = d.bikeTotalGripPct + '%';
+            document.getElementById('bike-grip-bar').style.width = d.bikeTotalGripPct + '%';
+            document.getElementById('bike-long-g').textContent = (d.bikeLongG >= 0 ? '+' : '') + d.bikeLongG.toFixed(2) + 'G';
+            document.getElementById('bike-lat-g').textContent = d.bikeLatG.toFixed(2) + 'G';
+
+            document.getElementById('car-grip-total').textContent = d.carTotalGripPct + '%';
+            document.getElementById('car-grip-bar').style.width = d.carTotalGripPct + '%';
+            document.getElementById('car-long-g').textContent = (d.carLongG >= 0 ? '+' : '') + d.carLongG.toFixed(2) + 'G';
+            document.getElementById('car-lat-g').textContent = d.carLatG.toFixed(2) + 'G';
+
+            // Phase Banner
+            document.getElementById('phase-number-badge').textContent = d.phase.badge;
+            document.getElementById('phase-main-title').textContent = d.phase.title;
+            document.getElementById('phase-main-summary').textContent = d.phase.summary;
+
+            // Motorcycle Detail Card
+            document.getElementById('bike-lean-deg').innerHTML = `${d.bikeLeanDeg}° <span class="text-[10px] text-slate-500">/ 60°</span>`;
+            document.getElementById('bike-fbrake-val').textContent = Math.round(d.bikeFrontBrake) + '%';
+            document.getElementById('bike-fbrake-bar').style.width = d.bikeFrontBrake + '%';
+            document.getElementById('bike-rbrake-val').textContent = Math.round(d.bikeRearBrake) + '%';
+            document.getElementById('bike-rbrake-bar').style.width = d.bikeRearBrake + '%';
+            document.getElementById('bike-fork-val').textContent = Math.round(d.bikeFork) + '%';
+            document.getElementById('bike-fork-bar').style.width = d.bikeFork + '%';
+            document.getElementById('bike-throttle-val').textContent = Math.round(d.bikeThrottle) + '%';
+            document.getElementById('bike-throttle-bar').style.width = d.bikeThrottle + '%';
+
+            document.getElementById('bike-rake-val').textContent = `${d.bikeRake}° / ${d.bikeTrail}mm`;
+            document.getElementById('bike-rake-note').textContent = d.bikeFork > 60 ? 'Compressed / Agile' : 'Extended / Stable';
+            const fBias = d.bikeFrontBrake > 5 ? Math.round((d.bikeFrontBrake / (d.bikeFrontBrake + d.bikeRearBrake * 0.5)) * 100) : 50;
+            document.getElementById('bike-bias-val').textContent = d.bikeFrontBrake > 5 ? `${fBias}%F / ${100 - fBias}%R` : 'Neutral';
+            document.getElementById('bike-patch-val').textContent = `${d.bikePatch}% Area`;
+            document.getElementById('bike-physics-desc').textContent = d.phase.bikeDesc;
+
+            // Car Detail Card
+            document.getElementById('car-steer-deg').innerHTML = `${Math.round(d.carSteerPct)}% <span class="text-[10px] text-slate-500">Lock</span>`;
+            document.getElementById('car-brake-val').textContent = Math.round(d.carBrake) + '%';
+            document.getElementById('car-brake-bar').style.width = d.carBrake + '%';
+            document.getElementById('car-fload-val').textContent = d.carFrontLoad + '%';
+            document.getElementById('car-rload-val').textContent = d.carRearLoad + '%';
+            document.getElementById('car-fload-bar').style.width = d.carFrontLoad + '%';
+            document.getElementById('car-rload-bar').style.width = d.carRearLoad + '%';
+            document.getElementById('car-yaw-val').textContent = d.carYaw + '%';
+            document.getElementById('car-yaw-bar').style.width = d.carYaw + '%';
+            document.getElementById('car-throttle-val').textContent = Math.round(d.carThrottle) + '%';
+            document.getElementById('car-throttle-bar').style.width = d.carThrottle + '%';
+
+            const outsideFrontWt = Math.round(d.carFrontLoad * 0.5 + (d.carSteerPct / 100) * 16);
+            document.getElementById('car-outtire-val').textContent = `${outsideFrontWt}% Total Wt`;
+            document.getElementById('car-balance-val').textContent =
+                (d.carBrake > 20 && d.carSteerPct > 20) ? 'Trail Rotation' :
+                (d.carThrottle > 50 && d.carSteerPct > 20) ? 'Power Exit Push' : 'Neutral Balance';
+            document.getElementById('car-physics-desc').textContent = d.phase.carDesc;
+
+            // Render Canvases
+            drawTrackMap();
+            drawTelemetryGraph();
+            drawFrictionCircle();
+        }
+
+        // ============================================================================
+        // 6. INTERACTIVE CONTROLS & EVENT LISTENERS
+        // ============================================================================
+        function onSliderInput(val) {
+            state.progress = parseFloat(val);
+            updateDashboardUI();
+        }
+
+        function setProgress(val) {
+            state.progress = Math.max(0, Math.min(100, val));
+            updateDashboardUI();
+        }
+
+        function stepProgress(delta) {
+            if (state.playing) togglePlay();
+            setProgress(state.progress + delta);
+        }
+
+        function togglePlay() {
+            state.playing = !state.playing;
+            const btn = document.getElementById('play-btn');
+            const icon = document.getElementById('play-icon');
+            const text = document.getElementById('play-text');
+
+            if (state.playing) {
+                if (state.progress >= 99.5) state.progress = 0;
+                icon.className = 'fa-solid fa-pause';
+                text.textContent = 'Pause';
+                btn.className = 'flex items-center justify-center gap-2 px-4 py-2 rounded-lg font-mono font-bold text-xs uppercase tracking-wider bg-amber-500 hover:bg-amber-400 text-black transition shadow-lg shadow-amber-500/20';
+                requestAnimationFrame(animationLoop);
+            } else {
+                icon.className = 'fa-solid fa-play';
+                text.textContent = 'Play Lap';
+                btn.className = 'flex items-center justify-center gap-2 px-4 py-2 rounded-lg font-mono font-bold text-xs uppercase tracking-wider bg-emerald-500 hover:bg-emerald-400 text-black transition shadow-lg shadow-emerald-500/20';
+            }
+        }
+
+        function animationLoop() {
+            if (!state.playing) return;
+            state.progress += state.simSpeed;
+            if (state.progress > 100) {
+                state.progress = 0;
+            }
+            updateDashboardUI();
+            requestAnimationFrame(animationLoop);
+        }
+
+        function setSimSpeed(spd) {
+            state.simSpeed = spd;
+            const ids = { 0.25: 'spd-025', 0.5: 'spd-05', 1: 'spd-1' };
+            Object.entries(ids).forEach(([k, id]) => {
+                const el = document.getElementById(id);
+                if (parseFloat(k) === spd) {
+                    el.className = 'px-1.5 py-0.5 rounded bg-slate-800 text-cyan-400 font-bold';
+                } else {
+                    el.className = 'px-1.5 py-0.5 rounded text-slate-400 hover:text-white';
+                }
+            });
+        }
+
+        function setViewMode(mode) {
+            state.viewMode = mode;
+            const modes = ['both', 'bike', 'car'];
+            modes.forEach(m => {
+                const btn = document.getElementById(`mode-${m}`);
+                if (m === mode) {
+                    btn.className = 'px-3 py-1.5 rounded-md text-xs font-mono font-semibold transition-all bg-slate-800 text-white shadow';
+                } else {
+                    btn.className = 'px-3 py-1.5 rounded-md text-xs font-mono font-semibold transition-all text-slate-400 hover:text-white';
+                }
+            });
+
+            const grid = document.getElementById('comparison-cards-grid');
+            const bikeCard = document.getElementById('bike-detail-card');
+            const carCard = document.getElementById('car-detail-card');
+            const fcBike = document.getElementById('fc-card-bike');
+            const fcCar = document.getElementById('fc-card-car');
+
+            if (mode === 'both') {
+                grid.className = 'grid grid-cols-1 md:grid-cols-2 gap-3 flex-1';
+                bikeCard.classList.remove('hidden');
+                carCard.classList.remove('hidden');
+                fcBike.classList.remove('opacity-40');
+                fcCar.classList.remove('opacity-40');
+            } else if (mode === 'bike') {
+                grid.className = 'grid grid-cols-1 gap-3 flex-1';
+                bikeCard.classList.remove('hidden');
+                carCard.classList.add('hidden');
+                fcBike.classList.remove('opacity-40');
+                fcCar.classList.add('opacity-40');
+            } else {
+                grid.className = 'grid grid-cols-1 gap-3 flex-1';
+                bikeCard.classList.add('hidden');
+                carCard.classList.remove('hidden');
+                fcBike.classList.add('opacity-40');
+                fcCar.classList.remove('opacity-40');
+            }
+
+            updateDashboardUI();
+        }
+
+        function toggleTrace(traceKey) {
+            state.traces[traceKey] = !state.traces[traceKey];
+            const btn = document.getElementById(`trace-btn-${traceKey}`);
+            const activeStyles = {
+                brake: 'px-2 py-1 rounded bg-red-500/20 border border-red-500 text-red-300 font-semibold',
+                lean: 'px-2 py-1 rounded bg-amber-500/20 border border-amber-500 text-amber-300 font-semibold',
+                throttle: 'px-2 py-1 rounded bg-emerald-500/20 border border-emerald-500 text-emerald-300 font-semibold'
+            };
+            const inactiveStyle = 'px-2 py-1 rounded bg-slate-900 border border-slate-700 text-slate-500 font-semibold';
+            btn.className = state.traces[traceKey] ? activeStyles[traceKey] : inactiveStyle;
+            drawTelemetryGraph();
+        }
+
+        // Direct Interactive Scrubbing on Telemetry Graph Canvas
+        function setupGraphScrubbing() {
+            const canvas = document.getElementById('telemetryCanvas');
+            function handlePointer(e) {
+                const rect = canvas.getBoundingClientRect();
+                const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+                const padLeft = 42;
+                const padRight = 20;
+                const plotW = rect.width - padLeft - padRight;
+                const relX = clientX - rect.left - padLeft;
+                const pct = Math.max(0, Math.min(100, (relX / plotW) * 100));
+                setProgress(Math.round(pct * 2) / 2);
+            }
+
+            canvas.addEventListener('mousedown', e => {
+                state.isDraggingGraph = true;
+                if (state.playing) togglePlay();
+                handlePointer(e);
+            });
+            window.addEventListener('mousemove', e => {
+                if (state.isDraggingGraph) handlePointer(e);
+            });
+            window.addEventListener('mouseup', () => { state.isDraggingGraph = false; });
+
+            canvas.addEventListener('touchstart', e => {
+                state.isDraggingGraph = true;
+                if (state.playing) togglePlay();
+                handlePointer(e);
+            }, { passive: true });
+            canvas.addEventListener('touchmove', e => {
+                if (state.isDraggingGraph) handlePointer(e);
+            }, { passive: true });
+            canvas.addEventListener('touchend', () => { state.isDraggingGraph = false; });
+        }
+
+        // Direct Interactive Scrubbing on Top-Down Track Canvas (Finds nearest point on racing line)
+        function setupTrackScrubbing() {
+            const canvas = document.getElementById('trackCanvas');
+            function handleTrackPointer(e) {
+                const rect = canvas.getBoundingClientRect();
+                const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+                const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+
+                const vx = ((clientX - rect.left) / rect.width) * 1000;
+                const vy = ((clientY - rect.top) / rect.height) * 750;
+
+                let bestP = state.progress;
+                let minDist = Infinity;
+                for (let p = 0; p <= 100; p += 0.5) {
+                    const pt = getTrackPoint(p, 'bike');
+                    const dist = Math.hypot(pt.x - vx, pt.y - vy);
+                    if (dist < minDist) {
+                        minDist = dist;
+                        bestP = p;
+                    }
+                }
+                setProgress(bestP);
+            }
+
+            canvas.addEventListener('mousedown', e => {
+                state.isDraggingTrack = true;
+                if (state.playing) togglePlay();
+                handleTrackPointer(e);
+            });
+            window.addEventListener('mousemove', e => {
+                if (state.isDraggingTrack) handleTrackPointer(e);
+            });
+            window.addEventListener('mouseup', () => { state.isDraggingTrack = false; });
+
+            canvas.addEventListener('touchstart', e => {
+                state.isDraggingTrack = true;
+                if (state.playing) togglePlay();
+                handleTrackPointer(e);
+            }, { passive: true });
+            canvas.addEventListener('touchmove', e => {
+                if (state.isDraggingTrack) handleTrackPointer(e);
+            }, { passive: true });
+            canvas.addEventListener('touchend', () => { state.isDraggingTrack = false; });
+        }
+
+        // Keyboard Arrow Support
+        window.addEventListener('keydown', e => {
+            if (e.key === 'ArrowRight') {
+                stepProgress(1);
+            } else if (e.key === 'ArrowLeft') {
+                stepProgress(-1);
+            } else if (e.key === ' ') {
+                e.preventDefault();
+                togglePlay();
+            }
+        });
+
+        window.addEventListener('resize', () => {
+            updateDashboardUI();
+        });
+
+        window.onload = function () {
+            setupGraphScrubbing();
+            setupTrackScrubbing();
+            updateDashboardUI();
+        };
+    </script>
+</body>
+</html>

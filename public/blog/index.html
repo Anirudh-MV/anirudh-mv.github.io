@@ -1,46 +1,226 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
     <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="Anirudh MV's blog about engineering, telemetry, and vehicle dynamics.">
     <title>Anirudh's Blog</title>
+    <style>
+        :root {
+            --bg: #c8e6c8;
+            --bg-alt: #d8ecd8;
+            --header-from: #3a8a3a;
+            --header-to: #1e5a1e;
+            --card: #f2f8f0;
+            --border: #8ab88a;
+            --lime: #7dd94e;
+            --lime-dark: #4a9a2e;
+            --aqua-from: #5bcbe8;
+            --aqua-to: #0e7fc0;
+            --text: #1a2a1a;
+            --muted: #4a6a4a;
+            --shadow: rgba(0, 0, 0, 0.24);
+        }
+
+        * { box-sizing: border-box; }
+
+        html { scroll-behavior: smooth; }
+
+        body {
+            margin: 0;
+            min-width: 0;
+            color: var(--text);
+            background-color: var(--bg);
+            background-image: repeating-linear-gradient(45deg, rgba(255,255,255,.08) 0 1px, transparent 1px 6px);
+            font-family: "Trebuchet MS", "Lucida Sans Unicode", Arial, sans-serif;
+            line-height: 1.55;
+        }
+
+        a { color: #075d92; }
+        a:hover { color: #063d61; }
+
+        .top-strip {
+            position: sticky;
+            top: 0;
+            z-index: 10;
+            min-height: 2rem;
+            padding: .3rem 1rem;
+            overflow: hidden;
+            color: #fff;
+            background: linear-gradient(to bottom, var(--header-from), var(--header-to));
+            border-bottom: 2px solid #143a14;
+            box-shadow: 0 2px 6px var(--shadow);
+            text-align: center;
+            font-size: .85rem;
+            font-weight: 700;
+            text-shadow: 0 1px 2px rgba(0,0,0,.4);
+        }
+
+        marquee { display: block; }
+
+        .site-header {
+            position: sticky;
+            top: 2rem;
+            z-index: 9;
+            background: linear-gradient(to bottom, var(--header-from), var(--header-to));
+            border-bottom: 2px solid #143a14;
+            box-shadow: 0 3px 10px var(--shadow);
+        }
+
+        .site-header::before,
+        .site-footer::before {
+            content: "";
+            position: absolute;
+            inset: 0 0 auto;
+            height: 45%;
+            pointer-events: none;
+            background: linear-gradient(to bottom, rgba(255,255,255,.3), transparent);
+        }
+
+        .header-inner,
+        main,
+        .footer-inner {
+            width: min(100% - 2rem, 56rem);
+            margin: 0 auto;
+        }
+
+        .header-inner {
+            min-height: 3.5rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 1rem;
+            position: relative;
+            z-index: 1;
+        }
+
+        .brand {
+            color: #fff;
+            font: 700 1.15rem Georgia, "Times New Roman", serif;
+            text-decoration: none;
+            text-shadow: 0 2px 4px rgba(0,0,0,.4);
+            white-space: nowrap;
+        }
+
+        .home-link,
+        .read-link {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 2.35rem;
+            padding: .45rem 1rem;
+            color: #fff;
+            border: 1px solid #0a5a8a;
+            border-radius: 8px;
+            background: linear-gradient(to bottom, var(--aqua-from), var(--aqua-to));
+            box-shadow: inset 0 1px 0 rgba(255,255,255,.35), 0 2px 6px var(--shadow);
+            font-size: .85rem;
+            font-weight: 700;
+            text-decoration: none;
+            text-shadow: 0 1px 2px rgba(0,0,0,.3);
+        }
+
+        .home-link:hover,
+        .read-link:hover {
+            color: #fff;
+            background: linear-gradient(to bottom, #6dd8f2, #1890d0);
+        }
+
+        main { padding: 2rem 0 2.5rem; }
+
+        .hero,
+        .entry {
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            background: linear-gradient(to bottom, #fff 0%, var(--card) 100%);
+            box-shadow: inset 0 1px 0 rgba(255,255,255,.9), 0 4px 12px var(--shadow), 0 1px 3px rgba(0,0,0,.15);
+        }
+
+        .hero { padding: 1.5rem; text-align: center; }
+
+        h1, h2 {
+            margin: 0;
+            color: var(--text);
+            font-family: Georgia, "Times New Roman", serif;
+            text-shadow: 0 1px 0 rgba(255,255,255,.7), 0 -1px 0 rgba(0,0,0,.1);
+        }
+
+        h1 { font-size: clamp(1.65rem, 5vw, 2.2rem); }
+        .hero p { margin: .5rem 0 0; color: var(--muted); }
+
+        .section-heading {
+            margin: 2rem 0 .75rem;
+            padding: 0 0 .5rem;
+            font-size: 1.35rem;
+            border-bottom: 3px solid transparent;
+            border-image: linear-gradient(to right, var(--lime), var(--header-from), transparent) 1;
+        }
+
+        .entry { padding: 1.25rem; }
+        .entry h3 { margin: 0; font: 700 1.1rem Georgia, "Times New Roman", serif; }
+        .entry h3 a { color: #174f2a; }
+        .entry-meta { margin: .35rem 0 .75rem; color: var(--muted); font-size: .82rem; font-weight: 700; }
+        .entry p { margin: 0; font-size: .92rem; }
+
+        .read-link {
+            margin-top: 1rem;
+            background: linear-gradient(to bottom, var(--lime), var(--lime-dark));
+            border-color: #2d6b1e;
+            color: #173d0b;
+            text-shadow: 0 1px 0 rgba(255,255,255,.4);
+        }
+        .read-link:hover { background: linear-gradient(to bottom, #90e860, #5ab03a); color: #173d0b; }
+
+        .site-footer {
+            position: relative;
+            overflow: hidden;
+            color: rgba(255,255,255,.78);
+            background: linear-gradient(to bottom, var(--header-to), #0e3a0e);
+            border-top: 2px solid #143a14;
+        }
+        .footer-inner { position: relative; z-index: 1; padding: 1rem; text-align: center; font-size: .78rem; }
+
+        @media (max-width: 480px) {
+            .header-inner, main { width: min(100% - 1.25rem, 56rem); }
+            .header-inner { min-height: 3.25rem; }
+            .site-header { top: 2rem; }
+            .brand { font-size: 1rem; }
+            .home-link { padding: .4rem .7rem; font-size: .78rem; }
+            main { padding-top: 1.25rem; }
+            .hero, .entry { padding: 1rem; }
+            .section-heading { margin-top: 1.5rem; }
+        }
+    </style>
 </head>
-<body bgcolor="#ffffff" text="#000000" link="#0000cc" vlink="#551a8b" alink="#ff0000">
-    <font face="Times New Roman, Times, serif">
+<body>
+    <div class="top-strip" aria-label="Site announcement">
+        <marquee behavior="scroll" direction="left" scrollamount="6">Welcome to my blog</marquee>
+    </div>
 
-    <marquee behavior="scroll" direction="left" scrollamount="6">
-        <b>Welcome to my blog!</b> &nbsp;&#42;&#42;&#42;&nbsp; Updated October 2026 &nbsp;&#42;&#42;&#42;&nbsp;
-        New post: Trail Braking Telemetry - Bike vs Car &nbsp;&#42;&#42;&#42;&nbsp;
-        Best viewed at 1024x768 &nbsp;&#42;&#42;&#42;&nbsp; Bookmark this page (Ctrl+D)!
-    </marquee>
+    <header class="site-header">
+        <div class="header-inner">
+            <a class="brand" href="/">Anirudh MV</a>
+            <a class="home-link" href="/">Back to Home</a>
+        </div>
+    </header>
 
-    <hr>
+    <main>
+        <section class="hero" aria-labelledby="blog-title">
+            <h1 id="blog-title">Anirudh's Blog</h1>
+            <p>Notes on engineering, telemetry, and vehicle dynamics.</p>
+        </section>
 
-    <h1 align="center">~ ~ Anirudh's Blog ~ ~</h1>
+        <h2 class="section-heading">Blog Entries</h2>
+        <article class="entry">
+            <div class="entry-meta">October 2026</div>
+            <h3><a href="/blog/trail-braking/">Trail Braking Telemetry: Bike vs Car</a></h3>
+            <p>An interactive MoTeC-style telemetry dashboard exploring how much brake to trail at every point of a corner, why a motorcycle's braking envelope is <em>heart-shaped</em> and a GT car's is <em>mushroom-shaped</em>, and why you cannot brake a bike like a car at entry.</p>
+            <a class="read-link" href="/blog/trail-braking/">Read the post &rarr;</a>
+        </article>
+    </main>
 
-    <hr>
-
-    <p align="center"><a href="https://anirudhmv.in">[Back to Home]</a></p>
-
-    <h2>Blog Entries</h2>
-
-    <ul>
-        <li><b>October 2026</b> -
-            <a href="/blog/trail-braking/">Trail Braking Telemetry: Bike vs Car</a><br>
-            <font size="2">An interactive MoTeC-style telemetry dashboard. How much brake to trail at every
-            point of a corner, why a motorcycle's braking envelope is <i>heart-shaped</i> and a GT car's is
-            <i>mushroom-shaped</i>, and why you cannot brake a bike like a car at entry. Annotated with the
-            primary research: Cossalter, Pacejka, Milliken, Massaro &amp; Limebeer.</font>
-            <ul><li><font size="2">Tags: MotoGP | Vehicle Dynamics | Interactive</font></li></ul>
-        </li>
-    </ul>
-
-    <hr>
-
-    <p align="center">
-        <font size="1">This page is hand-crafted HTML. No frameworks were harmed.<br>
-        &copy; 2026 Anirudh MV</font>
-    </p>
-
-    </font>
+    <footer class="site-footer">
+        <div class="footer-inner">&copy; 2026 Anirudh MV</div>
+    </footer>
 </body>
 </html>
